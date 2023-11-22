@@ -43,6 +43,7 @@ For example given a header (in binary) of: 0000 0010 means that 2 bytes will be 
 should be used for the operation size.
 
 
+## Operations
 "add" operation means that a number of bytes should be added to outputStream. The bytes that will be added will follow
 the operation size. It is invalid if deltaStream does not have enough bytes left.
 
@@ -112,6 +113,7 @@ inputStream and deltaStream do not have the same number of remaining bytes. It i
 to not have any more bytes (since it failed to remove anything).
 
 
+## More info
 For a concrete example given that deltaStream contains (in binary): 0010_0101 0000_0010 0011_1000 0100_1110 0010_0000
 translates to: unchanged with operation size 5, add with operation size 2, the first byte added is hex 38, the second
 byte added is hex 4E, done (keep the rest of inputStream). A shorter description (rather than a byte by byte one) is
@@ -146,6 +148,7 @@ drive. That said it makes little sense to allow public access to change somethin
 place.
 
 
+## Q&A
 Does this format do better with a sparse or dense delta? It handles both very well. If an entire 4 GiB payload is being
 replaced (every byte changed) the overhead is only 1 byte (replace remaining, entire payload). If only a single byte is
 replaced in a 4 GiB payload the overhead is a maximum of only 7 bytes (unchanged size 4, 4 bytes op size, replace op
@@ -165,6 +168,7 @@ do what you need but since it's payload agnostic (doesn't assume files) you'll n
 to attach meaning.
 
 
+## Closing
 I thought of operations for flipping the bits of the bytes or filling a length with a certain specified byte but the
 later is not in the spirit of a delta (that would be compression) and the former is questionable (there is still enough
 space for flipping if someone wants it) so I didn't.
