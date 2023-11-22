@@ -1,5 +1,5 @@
 Red [
-    Title: "Entrace for cli"
+    Title: "Entrance for cli"
 ]
 
 ; TODO: if no args then cli
