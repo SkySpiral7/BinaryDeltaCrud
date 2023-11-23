@@ -19,10 +19,17 @@ main: context [
         while [deltaStreamIndex <= length? deltaStream] [
             currentDeltaByte: pick deltaStream deltaStreamIndex
             if (currentDeltaByte and maskOperation) <> operationUnchanged [throw "Not yet implemented: op must be unchanged"]
-            if (currentDeltaByte and maskOperationSizeFlag) == maskOperationSizeFlag [throw "Not yet implemented: op size flag must be 0"]
 
             remainingValue: currentDeltaByte and maskRemaining
             operationSize: remainingValue
+            if (currentDeltaByte and maskOperationSizeFlag) == maskOperationSizeFlag [
+                if remainingValue > 4 [throw "Not yet implemented: op size size is limited to signed 4 bytes"]
+                opSizeBinary: copy/part (skip deltaStream deltaStreamIndex) remainingValue
+                if (remainingValue == 4) and ((opSizeBinary and #{80000000}) == #{80000000}) [throw "Not yet implemented: op size size is limited to signed 4 bytes"]
+                operationSize: to integer! opSizeBinary
+                deltaStreamIndex: deltaStreamIndex + remainingValue
+            ]
+
             inputSizeRemaining: (length? inputStream) - inputStreamIndex + 1
             if operationSize == 0 [operationSize: inputSizeRemaining]
             if operationSize > inputSizeRemaining [throw "Invalid: Not enough bytes remaining in inputStream"]

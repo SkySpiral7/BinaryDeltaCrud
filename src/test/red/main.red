@@ -31,6 +31,17 @@ context [
         redunit/assert-equals expected actual
     ]
 
+    test-applyDelta-doesNothing-givenOpSizeUnchanged: func [] [
+        inputStream: #{cafe}
+        ;001 1 0001 00000010 unchanged 1 byte op size size which has an op size of 2
+        deltaStream: 2#{0011000100000010}
+        expected: #{cafe}
+
+        actual: main/applyDelta inputStream deltaStream
+
+        redunit/assert-equals expected actual
+    ]
+
     test-applyDelta-throws-whenInputRunsOut: func [] [
         inputStream: #{ca}
         ;001 0 0001 unchanged 1 byte. twice
