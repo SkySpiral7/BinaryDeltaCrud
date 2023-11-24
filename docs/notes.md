@@ -15,3 +15,10 @@
 ## use cases
 * version control (like git or incremental backups)
 * app updates (including mods or synchronizing files between two computers)
+
+## learn red
+* red docs: https://github.com/red/docs/blob/master/en/SUMMARY.adoc
+   * vid doc: https://github.com/red/docs/blob/master/en/vid.adoc
+* red github wiki: https://github.com/red/red/wiki
+* rebol words: http://www.rebol.com/r3/docs/functions.html
+* rebol book: http://www.rebol.com/docs/core23/rebolcore.html
