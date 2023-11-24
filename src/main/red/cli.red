@@ -1,8 +1,8 @@
 Red [
-    Title: "Entrance for cli"
+   Title: "Entrance for cli"
 ]
 
-; TODO: if no args then cli
+; TODO: if no args then gui
 arg1: to integer! system/options/args/1
 arg2: to integer! system/options/args/2
 

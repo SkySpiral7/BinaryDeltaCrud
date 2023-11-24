@@ -1,5 +1,5 @@
 Red [
-    Title: "Entrance for gui"
-    Needs: 'View
+   Title: "Entrance for gui"
+   Needs: 'View
 ]
 view [text "Hello World!"]

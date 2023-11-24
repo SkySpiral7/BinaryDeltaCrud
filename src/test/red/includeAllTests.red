@@ -1,5 +1,5 @@
 Red [
-    Title: "run the tests"
+   Title: "run the tests"
 ]
 
 do %../../../../../red/RedUnit/src/redunit.red
