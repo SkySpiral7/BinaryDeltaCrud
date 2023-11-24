@@ -65,7 +65,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesNothing-givenDone: func [] [
+   test-applyDelta-doesNothing-givenDoneExtraInput: func [] [
       inputStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -76,7 +76,18 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-throws-givenUnchangeOp0ExtraBytes: func [] [
+   test-applyDelta-doesNothing-givenDoneEmptyInput: func [] [
+      inputStream: #{}
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{00100000}
+      expected: #{}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throws-givenUnchangeOp0ExtraDelta: func [] [
       inputStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{0010000000100000}
@@ -154,11 +165,10 @@ context [
    ]
 
    test-applyDelta-doesRemove-givenRemove: func [] [
-      inputStream: #{cafe}
+      inputStream: #{ca}
       ;011 0 0001 remove 1
-      ;001 0 0000 remaining unchanged aka done
-      deltaStream: 2#{0110000100100000}
-      expected: #{fe}
+      deltaStream: 2#{01100001}
+      expected: #{}
 
       actual: main/applyDelta inputStream deltaStream
 
