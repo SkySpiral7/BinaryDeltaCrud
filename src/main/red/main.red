@@ -33,18 +33,35 @@ main: context [
             operationSize: to integer! opSizeBinary
          ]
 
-         inputSizeRemaining: length? inputStream
-         either operationSize == 0 [operationSize: inputSizeRemaining]
-         [if operationSize > inputSizeRemaining [throw "Invalid: Not enough bytes remaining in inputStream"]]
-
          switch/default (currentDeltaByte and maskOperation) reduce [
-            operationAdd [throw "Not yet implemented: op add"]
+            operationAdd [
+               ; TODO: test all branches
+               if operationSize == 0 [
+                  operationSize: length? deltaStream
+               ]
+               if (operationSize == 0) or (operationSize > length? deltaStream) [throw "Invalid: Not enough bytes remaining in deltaStream"]
+               append outputStream copy/part deltaStream operationSize
+               deltaStream: skip deltaStream operationSize
+            ]
             operationUnchanged [
+               either operationSize == 0 [
+                  operationSize: length? inputStream
+                  if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
+               ]
+               ; op size 0 but empty input is allowed
+               [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
                append outputStream copy/part inputStream operationSize
                inputStream: skip inputStream operationSize
             ]
             operationReplace [throw "Not yet implemented: op replace"]
-            operationRemove [throw "Not yet implemented: op remove"]
+            operationRemove [
+               if operationSize == 0 [
+                  operationSize: length? inputStream
+                  if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
+               ]
+               if (operationSize == 0) or (operationSize > length? inputStream) [throw "Invalid: Not enough bytes remaining in inputStream"]
+               inputStream: skip inputStream operationSize
+            ]
             operationReversibleReplace [throw "Not yet implemented: op reversible replace"]
             operationReversibleRemove [throw "Not yet implemented: op reversible remove"]
          ] [

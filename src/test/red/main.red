@@ -9,11 +9,35 @@ context [
       do %../../main/red/main.red
    ]
 
+   test-applyDelta-doesAdd-givenAdd: func [] [
+      inputStream: #{cafe}
+      ;000 0 0001 add 1 then the byte (1111 1111)
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{000000011111111100100000}
+      expected: #{ffcafe}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
    test-applyDelta-doesNothing-givenDone: func [] [
       inputStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
       expected: #{cafe}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-doesRemove-givenRemove: func [] [
+      inputStream: #{cafe}
+      ;011 0 0001 remove 1
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{0110000100100000}
+      expected: #{fe}
 
       actual: main/applyDelta inputStream deltaStream
 
