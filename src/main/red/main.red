@@ -35,7 +35,6 @@ main: context [
 
          switch/default (currentDeltaByte and maskOperation) reduce [
             operationAdd [
-               ; TODO: test all branches
                if operationSize == 0 [
                   operationSize: length? deltaStream
                ]

@@ -4,3 +4,4 @@ Red [
 
 do %../../../../../red/RedUnit/src/redunit.red
 redunit/run %main.red
+;redunit/run %singleTest.red
