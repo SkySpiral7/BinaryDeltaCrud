@@ -120,6 +120,72 @@ context [
       redunit/assert-equals expected actual
    ]
 
+   test-applyDelta-doesReplace-givenReplaceOp0: func [] [
+      inputStream: #{cafe}
+      ;010 0 0000 replace remaining bytes (1111 1111 0000 0000)
+      deltaStream: 2#{010000001111111100000000}
+      expected: #{ff00}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throws-givenReplaceOp0DiffRemaining: func [] [
+      inputStream: #{cafe}
+      ;010 0 0000 replace remaining bytes (1111 1111)
+      deltaStream: 2#{0100000011111111}
+      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throws-givenReplaceOp0Empty: func [] [
+      inputStream: #{}
+      ;010 0 0000 replace remaining bytes
+      deltaStream: 2#{01000000}
+      expected: "Invalid: Not enough bytes remaining in deltaStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throws-givenReplaceOp1ShortDelta: func [] [
+      inputStream: #{cafe}
+      ;010 0 0001 replace 1 byte
+      deltaStream: 2#{01000001}
+      expected: "Invalid: Not enough bytes remaining in deltaStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throws-givenReplaceOp1ShortInput: func [] [
+      inputStream: #{}
+      ;010 0 0001 replace 1 byte (1111 1111)
+      deltaStream: 2#{0100000111111111}
+      expected: "Invalid: Not enough bytes remaining in inputStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-doesReplace-givenReplaceOp1: func [] [
+      inputStream: #{ca}
+      ;010 0 0001 replace 1 byte (1111 1111)
+      deltaStream: 2#{0100000111111111}
+      expected: #{ff}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
    test-applyDelta-doesRemove-givenRemoveOp0: func [] [
       inputStream: #{cafe}
       ;011 0 0000 remove remaining bytes
