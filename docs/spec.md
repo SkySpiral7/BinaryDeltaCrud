@@ -1,4 +1,4 @@
-# Binary Delta CRUD Format Specification
+# Binary Delta CRUD Format Specification v2
 I learned about the format of a (unified) patch file from the Unix command diff -u and was inspired to make a new delta
 format that is very compact, supports binary (it is not human readable), and is payload type agnostic. Since I don't
 know anything about this subject area I based this format on CRUD (Create, read, update, and delete) and so am calling
@@ -27,9 +27,9 @@ The operations are:
 - 1 (binary 001* ****) "unchanged" operation (R in CRUD mnemonic)
 - 2 (binary 010* ****) "replace" operation (U in CRUD)
 - 3 (binary 011* ****) "remove" operation (D in CRUD)
-- 4 (binary 100* ****) "reversible replace" operation
-- 5 (binary 101* ****) "reversible remove" operation
-- 6-7 [unused operations] 2 spots
+- 4-5 (binary 100 and 101) [unused operations] 2 spots
+- 6 (binary 110* ****) "reversible replace" operation
+- 7 (binary 111* ****) "reversible remove" operation
 
 If the operation size flag bit is 0 then the lowest nibble is the operation size (1 to 15 bytes). If the operation size
 flag bit is 1 then the lowest nibble is the size (1 to 15 bytes) of the operation size and the actual operation size
@@ -112,9 +112,27 @@ remaining bytes are the old values (see "reversible remove" for details) afterwa
 inputStream and deltaStream do not have the same number of remaining bytes. It is invalid for inputStream or deltaStream
 to not have any more bytes (since it failed to remove anything).
 
+### Unused Operations
+Operations 4 and 5 are unused and thus invalid to appear in a deltaStream. The reason spots 4-5 are empty instead of 6-7
+is so that the leading bit is 1 when reversible and 0 otherwise. However "add" and "unchanged" are already reversible
+so those don't need a "reversible add" ("add" is instead reversed with a "remove") or "reversible unchanged"
+(obviously "unchanged" is reversed with "unchanged").
 
-## More info
-For a concrete example given that deltaStream contains (in binary): 0010_0101 0000_0010 0011_1000 0100_1110 0010_0000
+The "replace" operation isn't strictly needed either since the same can be done with an "add" and "remove" however
+"replace" makes sense logically, having it would save overhead, and there was enough room for it
+(even with "reversible replace").
+
+I thought of operations for flipping the bits of the bytes or filling a length with a certain specified byte but the
+later is not in the spirit of a delta (that would be compression) and the former is questionable (there is still enough
+space for flipping if someone wants it) so I didn't.
+
+I thought of an operation for paste (as in copy/paste) which would require a clipboard index to be setup at the
+beginning of the deltaStream. While this operation makes sense from a perspective of "how a human would edit something"
+this format isn't intended for human operations and this is another operation that seems like a compression thing.
+
+
+## Examples and size considersation
+For a concrete example, given that deltaStream contains (in binary): 0010_0101 0000_0010 0011_1000 0100_1110 0010_0000
 translates to: unchanged with operation size 5, add with operation size 2, the first byte added is hex 38, the second
 byte added is hex 4E, done (keep the rest of inputStream). A shorter description (rather than a byte by byte one) is
 that the first 5 bytes are unchanged, add the hex bytes 38 and 4E, then the rest of the bytes in inputStream.
@@ -148,31 +166,30 @@ drive. That said it makes little sense to allow public access to change somethin
 place.
 
 
+## Versioning
+Since this document is a specification, it can't use semantic versioning (which requires an API) directly. However I can
+version this document based on the API it defines, assuming a hypothetical app whose entire API is defined by this
+document. In that case, a major version would increase whenever a breaking change occurs, a minor version whenever
+there's an addition (which is only possible by using the unused operations), and the micro version for any other updates
+to this document that don't change meaning. However there's no reason to track the micro version (just see this repo's
+git commit for that) and this spec is unlikely to get another actual update so I just have it marked as version 2.
+
+
 ## Q&A
-Does this format do better with a sparse or dense delta? It handles both very well. If an entire 4 GiB payload is being
-replaced (every byte changed) the overhead is only 1 byte (replace remaining, entire payload). If only a single byte is
-replaced in a 4 GiB payload the overhead is a maximum of only 7 bytes (unchanged size 4, 4 bytes op size, replace op
-size 1, new byte, done) with a minimum overhead of 2 bytes (replace op size 1, new byte, done). For an unchanged payload
-(of any size) the entire delta is 1 byte (done).
+### Does this format do better with a sparse or dense delta?
+It handles both very well. If an entire 4 GiB payload is being replaced (every byte changed) the overhead is only 1 byte
+(replace remaining, entire payload). If only a single byte is replaced in a 4 GiB payload the overhead is a maximum of
+only 7 bytes (unchanged size 4, 4 bytes op size, replace op size 1, new byte, done) with a minimum overhead of 2 bytes
+(replace op size 1, new byte, done). For an unchanged payload (of any size) the entire delta is 1 byte (done).
 
-Does this format do better with plain text or binary payloads? The delta is not human readable. It is able to handle
-binary and text/plain is just a type of binary therefore it is agnostic to payload media type. Contrast a patch file
-which is designed to be human readable, can't handle binary, and includes info for the file name and date (ie it assumes
-a file system).
+### Does this format do better with plain text or binary payloads?
+The delta is not human readable. It is able to handle binary and text/plain is just a type of binary therefore it is
+agnostic to payload media type. Contrast a patch file which is designed to be human readable, can't handle binary, and
+includes info for the file name and date (ie it assumes a file system).
 
-Can this format do everything a patch file can? No: this format doesn't handle file names or last modified timestamp
-(which are filesystem dependent). You could use this format 3 times for the name, modified timestamp, and file contents.
-Or you could use this format on a tar etc. For multiple files you can make a delta for each file (a delta can be add all
-or remove all for adding/removing files) or tar the files together and delta that. Which is to say that this format can
-do what you need but since it's payload agnostic (doesn't assume files) you'll need to do bookkeeping yourself in order
-to attach meaning.
-
-
-## Closing
-I thought of operations for flipping the bits of the bytes or filling a length with a certain specified byte but the
-later is not in the spirit of a delta (that would be compression) and the former is questionable (there is still enough
-space for flipping if someone wants it) so I didn't.
-
-I thought of an operation for paste (as in copy/paste) which would require a clipboard index to be setup at the
-beginning of the deltaStream. While this operation makes sense from a perspective of "how a human would edit something"
-this format isn't intended for human operations and this is another operation that seems like a compression thing.
+### Can this format do everything a patch file can?
+No: this format doesn't handle file names or last modified timestamp (which are filesystem dependent). You could use
+this format 3 times for the name, modified timestamp, and file contents. Or you could use this format on a tar etc. For
+multiple files you can make a delta for each file (a delta can be add all or remove all for adding/removing files) or
+tar the files together and delta that. Which is to say that this format can do what you need but since it's payload
+agnostic (doesn't assume files) you'll need to do bookkeeping yourself in order to attach meaning.

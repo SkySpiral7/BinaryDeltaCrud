@@ -3,8 +3,10 @@ Red [
 ]
 
 main: context [
-   ;80000000 is highest bit only of 4 bytes
+   ;TODO: use context to make little objects
+   ;80000000 is highest bit only of 4 bytes: 2#{10000000} then #{00 00 00}
    /local maskDetectUnsignedInt: #{80000000}
+   /local maskMakeReversible: to integer! 2#{10000000}
    /local maskOperation: to integer! 2#{11100000}
    /local maskOperationSizeFlag: to integer! 2#{00010000}
    /local maskRemaining: to integer! 2#{00001111}
@@ -12,8 +14,8 @@ main: context [
    /local operationUnchanged: to integer! 2#{00100000}
    /local operationReplace: to integer! 2#{01000000}
    /local operationRemove: to integer! 2#{01100000}
-   /local operationReversibleReplace: to integer! 2#{10000000}
-   /local operationReversibleRemove: to integer! 2#{10100000}
+   /local operationReversibleReplace: to integer! 2#{11000000}
+   /local operationReversibleRemove: to integer! 2#{11100000}
 
    applyDelta: func [
       "Modify the inputStream according to the deltaStream and return the outputStream."
@@ -49,7 +51,7 @@ main: context [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
-                  ; op size 0 but empty input is allowed
+                  ;op size 0 but empty input is allowed
                ]
                [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
                append outputStream copy/part inputStream operationSize
@@ -116,7 +118,7 @@ main: context [
                   [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
             ]
          ] [
-            throw "Invalid: operations 6-7 don't exist"
+            throw "Invalid: operations 4-5 don't exist"
          ]
       ]
       if not tail? inputStream [throw "Invalid: Unaccounted for bytes remaining in inputStream"]
@@ -129,9 +131,17 @@ main: context [
    ] [
       throw "Not yet implemented: generateDelta"
    ]
+   makeDeltaNonReversible: func [
+      "Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact)."
+      "Returns the new deltaStream."
+      deltaStream[binary!]
+   ] [
+      throw "Not yet implemented: makeDeltaNonReversible"
+   ]
    makeDeltaReversible: func [
-      "Modify a deltaStream according to beforeStream so that the deltaStream could be reversed."
-      beforeStream[binary!] deltaStream[binary!]
+      "Modify a deltaStream according to beforeStream so that the deltaStream could be reversed (and thus less compact)."
+      "Returns the new deltaStream."
+      inputStream[binary!] deltaStream[binary!]
    ] [
       throw "Not yet implemented: makeDeltaReversible"
    ]

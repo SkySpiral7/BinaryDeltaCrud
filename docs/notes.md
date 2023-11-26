@@ -1,7 +1,6 @@
 # Things to update the spec
 
-* make reversibles be 110 and 111 (6, 7) so that it matches the non-reversable
-* note that replace isn't strictly needed since add/remove will work
+To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 
 ## compare to other binary deltas
 * Shared Dictionary Compression for HTTP deprecated because VCDIFF (RFC 3284) compression sucked compared to normal ones like GZip
