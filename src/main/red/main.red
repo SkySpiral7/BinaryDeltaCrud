@@ -3,19 +3,22 @@ Red [
 ]
 
 main: context [
-   ;TODO: use context to make little objects
-   ;highest bit of 4 bytes (int size)
-   /local maskDetectUnsignedInt: append 2#{10000000} #{000000}
-   /local maskMakeReversible: to integer! 2#{10000000}
-   /local maskOperation: to integer! 2#{11100000}
-   /local maskOperationSizeFlag: to integer! 2#{00010000}
-   /local maskRemaining: to integer! 2#{00001111}
-   /local operationAdd: to integer! 2#{00000000}
-   /local operationUnchanged: to integer! 2#{00100000}
-   /local operationReplace: to integer! 2#{01000000}
-   /local operationRemove: to integer! 2#{01100000}
-   /local operationReversibleReplace: to integer! 2#{11000000}
-   /local operationReversibleRemove: to integer! 2#{11100000}
+   /local mask: context [
+      ;highest bit of 4 bytes (int size)
+      detectUnsignedInt: append 2#{10000000} #{000000}
+      reversibleFlag: to integer! 2#{10000000}
+      operation: to integer! 2#{11100000}
+      operationSizeFlag: to integer! 2#{00010000}
+      remaining: to integer! 2#{00001111}
+   ]
+   /local operation: context [
+      add: to integer! 2#{00000000}
+      unchanged: to integer! 2#{00100000}
+      replace: to integer! 2#{01000000}
+      remove: to integer! 2#{01100000}
+      reversibleReplace: to integer! 2#{11000000}
+      reversibleRemove: to integer! 2#{11100000}
+   ]
 
    applyDelta: func [
       "Modify the inputStream according to the deltaStream and return the outputStream."
@@ -26,19 +29,19 @@ main: context [
          currentDeltaByte: first deltaStream
          deltaStream: next deltaStream
 
-         remainingValue: currentDeltaByte and maskRemaining
+         remainingValue: currentDeltaByte and mask/remaining
          operationSize: remainingValue
-         if (currentDeltaByte and maskOperationSizeFlag) == maskOperationSizeFlag [
+         if (currentDeltaByte and mask/operationSizeFlag) == mask/operationSizeFlag [
             if remainingValue > 4 [throw "Limitation: op size size is limited to signed 4 bytes"]
             opSizeBinary: copy/part deltaStream remainingValue
             deltaStream: skip deltaStream remainingValue
-            if (remainingValue == 4) and ((opSizeBinary and maskDetectUnsignedInt) == maskDetectUnsignedInt)
+            if (remainingValue == 4) and ((opSizeBinary and mask/detectUnsignedInt) == mask/detectUnsignedInt)
                [throw "Limitation: op size size is limited to signed 4 bytes"]
             operationSize: to integer! opSizeBinary
          ]
 
-         switch/default (currentDeltaByte and maskOperation) reduce [
-            operationAdd [
+         switch/default (currentDeltaByte and mask/operation) reduce [
+            operation/add [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Add operation must add bytes"]
@@ -47,7 +50,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operationUnchanged [
+            operation/unchanged [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
@@ -57,7 +60,7 @@ main: context [
                append outputStream copy/part inputStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operationReplace [
+            operation/replace [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -71,7 +74,7 @@ main: context [
                deltaStream: skip deltaStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operationRemove [
+            operation/remove [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
@@ -80,7 +83,7 @@ main: context [
                [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
                inputStream: skip inputStream operationSize
             ]
-            operationReversibleReplace [
+            operation/reversibleReplace [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -100,7 +103,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operationReversibleRemove [
+            operation/reversibleRemove [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
@@ -149,20 +152,20 @@ main: context [
          currentDeltaByte: first deltaStream
          deltaStream: next deltaStream
 
-         remainingValue: currentDeltaByte and maskRemaining
+         remainingValue: currentDeltaByte and mask/remaining
          operationSize: remainingValue
          opSizeBinary: #{}
-         if (currentDeltaByte and maskOperationSizeFlag) == maskOperationSizeFlag [
+         if (currentDeltaByte and mask/operationSizeFlag) == mask/operationSizeFlag [
             if remainingValue > 4 [throw "Limitation: op size size is limited to signed 4 bytes"]
             opSizeBinary: copy/part deltaStream remainingValue
             deltaStream: skip deltaStream remainingValue
-            if (remainingValue == 4) and ((opSizeBinary and maskDetectUnsignedInt) == maskDetectUnsignedInt)
+            if (remainingValue == 4) and ((opSizeBinary and mask/detectUnsignedInt) == mask/detectUnsignedInt)
                [throw "Limitation: op size size is limited to signed 4 bytes"]
             operationSize: to integer! opSizeBinary
          ]
 
-         switch/default (currentDeltaByte and maskOperation) reduce [
-            operationAdd [
+         switch/default (currentDeltaByte and mask/operation) reduce [
+            operation/add [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Add operation must add bytes"]
@@ -173,7 +176,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operationUnchanged [
+            operation/unchanged [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
@@ -184,7 +187,7 @@ main: context [
                append outputStream opSizeBinary
                inputStream: skip inputStream operationSize
             ]
-            operationReplace [
+            operation/replace [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -194,26 +197,26 @@ main: context [
                   if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
                   if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]
                ]
-               append outputStream (currentDeltaByte or maskMakeReversible)
+               append outputStream (currentDeltaByte or mask/reversibleFlag)
                append outputStream opSizeBinary
                append outputStream copy/part inputStream operationSize
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operationRemove [
+            operation/remove [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
                   if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
                ]
                [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
-               append outputStream (currentDeltaByte or maskMakeReversible)
+               append outputStream (currentDeltaByte or mask/reversibleFlag)
                append outputStream opSizeBinary
                append outputStream copy/part inputStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operationReversibleReplace [
+            operation/reversibleReplace [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -236,7 +239,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operationReversibleRemove [
+            operation/reversibleRemove [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
