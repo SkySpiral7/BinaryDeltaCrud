@@ -35,7 +35,7 @@ context [
       inputStream: #{}
       ;000 0 0000 add remaining bytes
       deltaStream: #{00}
-      expected: "Invalid: Not enough bytes remaining in deltaStream"
+      expected: "Invalid: Add operation must add bytes"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -146,7 +146,7 @@ context [
       inputStream: #{}
       ;010 0 0000 replace remaining bytes
       deltaStream: 2#{01000000}
-      expected: "Invalid: Not enough bytes remaining in deltaStream"
+      expected: "Invalid: Replace operation must replace bytes"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -212,7 +212,7 @@ context [
       inputStream: #{}
       ;011 0 0000 remove remaining bytes
       deltaStream: 2#{01100000}
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Remove operation must remove bytes"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -232,8 +232,85 @@ context [
 
    test-applyDelta-doesRemove-givenRemove: func [] [
       inputStream: #{ca}
-      ;011 0 0001 remove 1
+      ;011 0 0001 remove 1 byte
       deltaStream: 2#{01100001}
+      expected: #{}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-doesRemove-givenReversibleRemoveOp0: func [] [
+      inputStream: #{00}
+      ;101 0 0000 reversible remove remaining bytes (00000000)
+      deltaStream: 2#{1010000000000000}
+      expected: #{}
+
+      actual: main/applyDelta inputStream deltaStream
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throw-givenReversibleRemoveOp0DiffLength: func [] [
+      inputStream: #{cafebabe}
+      ;101 0 0000 reversible remove remaining bytes (01100000)
+      deltaStream: 2#{1010000001100000}
+      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throw-givenReversibleRemoveOp0Empty: func [] [
+      inputStream: #{}
+      ;101 0 0000 reversible remove remaining bytes
+      deltaStream: 2#{10100000}
+      expected: "Invalid: Remove operation must remove bytes"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throw-givenReversibleRemoveOp1EmptyDelta: func [] [
+      inputStream: #{}
+      ;101 0 0001 reversible remove 1 byte
+      deltaStream: 2#{10100001}
+      expected: "Invalid: Not enough bytes remaining in deltaStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throw-givenReversibleRemoveOp1EmptyInput: func [] [
+      inputStream: #{}
+      ;101 0 0001 reversible remove 1 byte (00000000)
+      deltaStream: 2#{1010000100000000}
+      expected: "Invalid: Not enough bytes remaining in inputStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-throw-givenReversibleRemoveOp1NoMatch: func [] [
+      inputStream: #{ca}
+      ;101 0 0001 reversible remove 1 byte (00000000)
+      deltaStream: 2#{1010000100000000}
+      expected: "Invalid: bytes removed from inputStream didn't match deltaStream"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-applyDelta-doesRemove-givenReversibleRemove: func [] [
+      inputStream: #{00}
+      ;101 0 0001 reversible remove 1 byte (00000000)
+      deltaStream: 2#{1010000100000000}
       expected: #{}
 
       actual: main/applyDelta inputStream deltaStream

@@ -1,4 +1,8 @@
 # Things to update the spec
+
+* make reversibles be 110 and 111 (6, 7) so that it matches the non-reversable
+* note that replace isn't strictly needed since add/remove will work
+
 ## compare to other binary deltas
 * Shared Dictionary Compression for HTTP deprecated because VCDIFF (RFC 3284) compression sucked compared to normal ones like GZip
    * https://datatracker.ietf.org/doc/html/rfc3284 additionally it's just very different. diff use case at the least
