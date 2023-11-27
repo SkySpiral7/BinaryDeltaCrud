@@ -2,126 +2,65 @@ Red [
    Title: "All functionality"
 ]
 
-main: context [
-   /local mask: context [
-      ;highest bit of 4 bytes (int size)
-      detectUnsignedInt: append 2#{10000000} #{000000}
-      reversibleFlag: to integer! 2#{10000000}
-      operation: to integer! 2#{11100000}
-      operationSizeFlag: to integer! 2#{00010000}
-      remaining: to integer! 2#{00001111}
-   ]
-   /local operation: context [
-      add: to integer! 2#{00000000}
-      unchanged: to integer! 2#{00100000}
-      replace: to integer! 2#{01000000}
-      remove: to integer! 2#{01100000}
-      reversibleReplace: to integer! 2#{11000000}
-      reversibleRemove: to integer! 2#{11100000}
-   ]
+#include %deltaIterator.red
 
+main: context [
    applyDelta: func [
       "Modify the inputStream according to the deltaStream and return the outputStream."
-      inputStream[binary!] deltaStream[binary!]
+      inputStream[binary!] deltaStreamParam[binary!]
    ] [
       outputStream: #{}
-      while [not tail? deltaStream] [
-         currentDeltaByte: first deltaStream
-         deltaStream: next deltaStream
-
-         remainingValue: currentDeltaByte and mask/remaining
-         operationSize: remainingValue
-         if (currentDeltaByte and mask/operationSizeFlag) == mask/operationSizeFlag [
-            if remainingValue > 4 [throw "Limitation: op size size is limited to signed 4 bytes"]
-            opSizeBinary: copy/part deltaStream remainingValue
-            deltaStream: skip deltaStream remainingValue
-            if (remainingValue == 4) and ((opSizeBinary and mask/detectUnsignedInt) == mask/detectUnsignedInt)
-               [throw "Limitation: op size size is limited to signed 4 bytes"]
-            operationSize: to integer! opSizeBinary
-         ]
-
-         switch/default (currentDeltaByte and mask/operation) reduce [
-            operation/add [
-               either operationSize == 0 [
-                  operationSize: length? deltaStream
-                  if operationSize == 0 [throw "Invalid: Add operation must add bytes"]
-               ]
-               [if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]]
-               append outputStream copy/part deltaStream operationSize
-               deltaStream: skip deltaStream operationSize
+      deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
+      while [deltaItr/hasNext?] [
+         deltaItr/parseNext
+         switch deltaItr/operationType reduce [
+            deltaItr/operation/add [
+               append outputStream deltaItr/newData
             ]
-            operation/unchanged [
-               either operationSize == 0 [
-                  operationSize: length? inputStream
-                  if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
+            deltaItr/operation/unchanged [
+               either deltaItr/operationSize == 0 [
+                  deltaItr/operationSize: length? inputStream
                   ;op size 0 but empty input is allowed
-               ]
-               [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
-               append outputStream copy/part inputStream operationSize
-               inputStream: skip inputStream operationSize
-            ]
-            operation/replace [
-               either operationSize == 0 [
-                  operationSize: length? deltaStream
-                  if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
-                  if (length? inputStream) <> operationSize
-                     [throw "Invalid: inputStream and deltaStream have different number of remaining bytes"]
                ] [
-                  if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
-                  if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]
+                  if deltaItr/operationSize > length? inputStream
+                     [throw "Invalid: Not enough bytes remaining in inputStream"]
                ]
-               append outputStream copy/part deltaStream operationSize
-               deltaStream: skip deltaStream operationSize
-               inputStream: skip inputStream operationSize
+               append outputStream copy/part inputStream deltaItr/operationSize
+               inputStream: skip inputStream deltaItr/operationSize
             ]
-            operation/remove [
-               either operationSize == 0 [
-                  operationSize: length? inputStream
-                  if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
-                  if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
-               ]
-               [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
-               inputStream: skip inputStream operationSize
+            deltaItr/operation/replace [
+               if deltaItr/operationSize > length? inputStream
+                  [throw "Invalid: Not enough bytes remaining in inputStream"]
+               append outputStream deltaItr/newData
+               inputStream: skip inputStream deltaItr/operationSize
             ]
-            operation/reversibleReplace [
-               either operationSize == 0 [
-                  operationSize: length? inputStream
-                  if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
-                  if (length? deltaStream) <> (operationSize * 2)
-                     [throw "Invalid: deltaStream must have twice the remaining bytes as inputStream"]
+            deltaItr/operation/remove [
+               either deltaItr/operationSize == 0 [
+                  deltaItr/operationSize: length? inputStream
+                  if deltaItr/operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
                ] [
-                  if (operationSize * 2) > length? deltaStream
-                     [throw "Invalid: Not enough bytes remaining in deltaStream"]
-                  if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]
+                  if deltaItr/operationSize > length? inputStream
+                     [throw "Invalid: Not enough bytes remaining in inputStream"]
                ]
-               removedDeltaBytes: copy/part deltaStream operationSize
-               deltaStream: skip deltaStream operationSize
-               removedInputBytes: copy/part inputStream operationSize
-               inputStream: skip inputStream operationSize
-               if removedDeltaBytes <> removedInputBytes
+               inputStream: skip inputStream deltaItr/operationSize
+            ]
+            deltaItr/operation/reversibleReplace [
+               if deltaItr/operationSize > length? inputStream
+                  [throw "Invalid: Not enough bytes remaining in inputStream"]
+               removedInputBytes: copy/part inputStream deltaItr/operationSize
+               inputStream: skip inputStream deltaItr/operationSize
+               if deltaItr/oldData <> removedInputBytes
                   [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
-               append outputStream copy/part deltaStream operationSize
-               deltaStream: skip deltaStream operationSize
+               append outputStream deltaItr/newData
             ]
-            operation/reversibleRemove [
-               either operationSize == 0 [
-                  operationSize: length? deltaStream
-                  if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
-                  if (length? inputStream) <> operationSize
-                     [throw "Invalid: inputStream and deltaStream have different number of remaining bytes"]
-               ] [
-                  if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
-                  if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]
-               ]
-               removedDeltaBytes: copy/part deltaStream operationSize
-               deltaStream: skip deltaStream operationSize
-               removedInputBytes: copy/part inputStream operationSize
-               inputStream: skip inputStream operationSize
-               if removedDeltaBytes <> removedInputBytes
+            deltaItr/operation/reversibleRemove [
+               if deltaItr/operationSize > length? inputStream
+                  [throw "Invalid: Not enough bytes remaining in inputStream"]
+               removedInputBytes: copy/part inputStream deltaItr/operationSize
+               inputStream: skip inputStream deltaItr/operationSize
+               if deltaItr/oldData <> removedInputBytes
                   [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
             ]
-         ] [
-            throw "Invalid: operations 4-5 don't exist"
          ]
       ]
       if not tail? inputStream [throw "Invalid: Unaccounted for bytes remaining in inputStream"]
@@ -146,26 +85,26 @@ main: context [
       "Returns the new deltaStream."
       inputStream[binary!] deltaStream[binary!]
    ] [
-      ;TODO: figure out how to DRY: object that handles finite state for delta and object to hold the 3
+      ;TODO: use deltaIterator here too
       outputStream: #{}
       while [not tail? deltaStream] [
          currentDeltaByte: first deltaStream
          deltaStream: next deltaStream
 
-         remainingValue: currentDeltaByte and mask/remaining
+         remainingValue: currentDeltaByte and deltaItr/mask/remaining
          operationSize: remainingValue
          opSizeBinary: #{}
-         if (currentDeltaByte and mask/operationSizeFlag) == mask/operationSizeFlag [
+         if (currentDeltaByte and deltaItr/mask/operationSizeFlag) == deltaItr/mask/operationSizeFlag [
             if remainingValue > 4 [throw "Limitation: op size size is limited to signed 4 bytes"]
             opSizeBinary: copy/part deltaStream remainingValue
             deltaStream: skip deltaStream remainingValue
-            if (remainingValue == 4) and ((opSizeBinary and mask/detectUnsignedInt) == mask/detectUnsignedInt)
+            if (remainingValue == 4) and ((opSizeBinary and deltaItr/mask/detectUnsignedInt) == deltaItr/mask/detectUnsignedInt)
                [throw "Limitation: op size size is limited to signed 4 bytes"]
             operationSize: to integer! opSizeBinary
          ]
 
-         switch/default (currentDeltaByte and mask/operation) reduce [
-            operation/add [
+         switch/default (currentDeltaByte and deltaItr/mask/operation) reduce [
+            deltaItr/operation/add [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Add operation must add bytes"]
@@ -176,7 +115,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operation/unchanged [
+            deltaItr/operation/unchanged [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
@@ -187,7 +126,7 @@ main: context [
                append outputStream opSizeBinary
                inputStream: skip inputStream operationSize
             ]
-            operation/replace [
+            deltaItr/operation/replace [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -197,26 +136,26 @@ main: context [
                   if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
                   if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]
                ]
-               append outputStream (currentDeltaByte or mask/reversibleFlag)
+               append outputStream (currentDeltaByte or deltaItr/mask/reversibleFlag)
                append outputStream opSizeBinary
                append outputStream copy/part inputStream operationSize
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operation/remove [
+            deltaItr/operation/remove [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if not tail? deltaStream [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
                   if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
                ]
                [if operationSize > length? inputStream [throw "Invalid: Not enough bytes remaining in inputStream"]]
-               append outputStream (currentDeltaByte or mask/reversibleFlag)
+               append outputStream (currentDeltaByte or deltaItr/mask/reversibleFlag)
                append outputStream opSizeBinary
                append outputStream copy/part inputStream operationSize
                inputStream: skip inputStream operationSize
             ]
-            operation/reversibleReplace [
+            deltaItr/operation/reversibleReplace [
                either operationSize == 0 [
                   operationSize: length? inputStream
                   if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
@@ -239,7 +178,7 @@ main: context [
                append outputStream copy/part deltaStream operationSize
                deltaStream: skip deltaStream operationSize
             ]
-            operation/reversibleRemove [
+            deltaItr/operation/reversibleRemove [
                either operationSize == 0 [
                   operationSize: length? deltaStream
                   if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]

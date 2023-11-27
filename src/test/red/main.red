@@ -1,5 +1,5 @@
 Red [
-   Title: "tests"
+   Title: "tests for main"
 ]
 
 context [
@@ -9,13 +9,14 @@ context [
       do %../../main/red/main.red
    ]
 
+   ;TODO: move most of these tests to a new file
    test-applyDelta-doesNothing-givenOpSizeUnchanged: func [] [
       inputStream: #{cafe}
       ;001 1 0001 00000010 unchanged 1 byte op size size which has an op size of 2
       deltaStream: 2#{0011000100000010}
       expected: #{cafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -26,7 +27,7 @@ context [
       deltaStream: 2#{001100100000000000000010}
       expected: #{cafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -59,7 +60,7 @@ context [
       deltaStream: #{00cafe}
       expected: #{cafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -93,7 +94,7 @@ context [
       deltaStream: 2#{000000011111111100100000}
       expected: #{ffcafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -104,7 +105,7 @@ context [
       deltaStream: 2#{00100000}
       expected: #{cafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -115,7 +116,7 @@ context [
       deltaStream: 2#{00100000}
       expected: #{}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -148,7 +149,7 @@ context [
       deltaStream: 2#{0010000100100001}
       expected: #{cafe}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -159,7 +160,7 @@ context [
       deltaStream: 2#{010000001111111100000000}
       expected: #{ff00}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -179,7 +180,7 @@ context [
       inputStream: #{cafe}
       ;010 0 0000 replace remaining bytes (1111 1111)
       deltaStream: 2#{0100000011111111}
-      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -214,7 +215,7 @@ context [
       deltaStream: 2#{0100000111111111}
       expected: #{ff}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -225,7 +226,7 @@ context [
       deltaStream: 2#{01100000}
       expected: #{}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -269,7 +270,7 @@ context [
       deltaStream: 2#{01100001}
       expected: #{}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -281,7 +282,7 @@ context [
       deltaStream: 2#{110000000000000011111111}
       expected: #{ff}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -297,12 +298,24 @@ context [
       redunit/assert-equals expected actual
    ]
 
+   test-applyDelta-throw-givenReversibleReplaceOp0Odd: func [] [
+      inputStream: #{0011}
+      ;110 0 0000 reversible replace remaining bytes
+      ;old: 00000000 but no new
+      deltaStream: 2#{1100000000000000}
+      expected: "Invalid: deltaStream must have an even number of bytes"
+
+      actual: catch [main/applyDelta inputStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
    test-applyDelta-throw-givenReversibleReplaceOp0DiffLength: func [] [
       inputStream: #{0011}
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
       deltaStream: 2#{110000000000000011111111}
-      expected: "Invalid: deltaStream must have twice the remaining bytes as inputStream"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -352,7 +365,7 @@ context [
       deltaStream: 2#{110000010000000011111111}
       expected: #{ff}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -363,7 +376,7 @@ context [
       deltaStream: 2#{1110000000000000}
       expected: #{}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -380,10 +393,10 @@ context [
    ]
 
    test-applyDelta-throw-givenReversibleRemoveOp0DiffLength: func [] [
-      inputStream: #{cafebabe}
+      inputStream: 2#{0110000011111111}
       ;111 0 0000 reversible remove remaining bytes (01100000)
       deltaStream: 2#{1110000001100000}
-      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -429,7 +442,7 @@ context [
       deltaStream: 2#{1110000100000000}
       expected: #{}
 
-      actual: main/applyDelta inputStream deltaStream
+      actual: catch [main/applyDelta inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -472,7 +485,7 @@ context [
       deltaStream: 2#{0011000100000010}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -483,7 +496,7 @@ context [
       deltaStream: 2#{001100100000000000000010}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -516,7 +529,7 @@ context [
       deltaStream: #{00cafe}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -550,7 +563,7 @@ context [
       deltaStream: 2#{000000011111111100100000}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -561,7 +574,7 @@ context [
       deltaStream: 2#{00100000}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -572,7 +585,7 @@ context [
       deltaStream: 2#{00100000}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -605,7 +618,7 @@ context [
       deltaStream: 2#{0010000100100001}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -618,7 +631,7 @@ context [
       ;old: 1100101011111110 new: 11111111 00000000
       expected: 2#{1100000011001010111111101111111100000000}
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -675,7 +688,7 @@ context [
       ;old: 11001010 new: 11111111
       expected: 2#{110000011100101011111111}
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -688,7 +701,7 @@ context [
       ;old: 11001010
       expected: 2#{1110000011001010}
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -734,7 +747,7 @@ context [
       ;old: 11001010
       expected: 2#{1110000111001010}
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -746,7 +759,7 @@ context [
       deltaStream: 2#{110000000000000011111111}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -817,7 +830,7 @@ context [
       deltaStream: 2#{110000010000000011111111}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -828,7 +841,7 @@ context [
       deltaStream: 2#{1110000000000000}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]
@@ -894,7 +907,7 @@ context [
       deltaStream: 2#{1110000100000000}
       expected: deltaStream
 
-      actual: main/makeDeltaReversible inputStream deltaStream
+      actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
       redunit/assert-equals expected actual
    ]

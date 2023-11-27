@@ -1,6 +1,6 @@
 Red [
-   Title: "run all the tests"
+   Title: "run single test file"
 ]
 
 #include %../../../../../red/RedUnit/src/redunit.red
-redunit/run %main.red
+redunit/run %singleTest.red
