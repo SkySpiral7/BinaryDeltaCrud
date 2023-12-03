@@ -651,7 +651,7 @@ context [
       inputStream: #{cafe}
       ;010 0 0000 replace remaining bytes (1111 1111)
       deltaStream: 2#{0100000011111111}
-      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
@@ -780,7 +780,7 @@ context [
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
       deltaStream: 2#{110000000000000011111111}
-      expected: "Invalid: deltaStream must have twice the remaining bytes as inputStream"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/makeDeltaReversible inputStream deltaStream]
 
@@ -858,10 +858,10 @@ context [
    ]
 
    test-makeDeltaReversible-throw-givenReversibleRemoveOp0DiffLength: func [] [
-      inputStream: #{cafebabe}
+      inputStream: 2#{0110000011111111}
       ;111 0 0000 reversible remove remaining bytes (01100000)
       deltaStream: 2#{1110000001100000}
-      expected: "Invalid: inputStream and deltaStream have different number of remaining bytes"
+      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
 
       actual: catch [main/makeDeltaReversible inputStream deltaStream]
 

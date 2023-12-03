@@ -7,7 +7,7 @@ deltaIterator: context [
    mask: context [
       ;highest bit of 4 bytes (int size)
       detectUnsignedInt: append 2#{10000000} #{000000}
-      reversibleFlag: to integer! 2#{10000000}
+      reversibleFlag: 2#{10000000}
       operation: to integer! 2#{11100000}
       operationSizeFlag: to integer! 2#{00010000}
       remaining: to integer! 2#{00001111}
@@ -59,7 +59,7 @@ deltaIterator: context [
             [throw "Limitation: op size size is limited to signed 4 bytes"]
          operationSize: to integer! opSizeBinary
       ]
-      operationBinary: append #{} currentDeltaByte
+      operationBinary: append copy #{} currentDeltaByte
       operationBinary: append operationBinary opSizeBinary
 
       switch/default operationType reduce [
@@ -121,7 +121,7 @@ deltaIterator: context [
 
    full-binary: func [
    ] [
-      result: operationBinary
+      result: copy operationBinary
       if oldData <> none [result: append result oldData]
       if newData <> none [result: append result newData]
       return result
