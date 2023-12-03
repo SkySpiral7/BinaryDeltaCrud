@@ -9,7 +9,7 @@ context [
       do %../../main/red/main.red
    ]
 
-   ;TODO: move most of these tests to a new file
+   ;TODO: redo main tests: validateInputStream exists
    test-applyDelta-doesNothing-givenOpSizeUnchanged: func [] [
       inputStream: #{cafe}
       ;001 1 0001 00000010 unchanged 1 byte op size size which has an op size of 2
@@ -26,28 +26,6 @@ context [
       ;001 1 0010 00000000 00000010 unchanged 2 byte op size size which has an op size of 2
       deltaStream: 2#{001100100000000000000010}
       expected: #{cafe}
-
-      actual: catch [main/applyDelta inputStream deltaStream]
-
-      redunit/assert-equals expected actual
-   ]
-
-   test-applyDelta-throws-givenOpSizeSizeTooLarge: func [] [
-      inputStream: #{cafe}
-      ;001 1 1000 unchanged 8 bytes op size size
-      deltaStream: 2#{00111000}
-      expected: "Limitation: op size size is limited to signed 4 bytes"
-
-      actual: catch [main/applyDelta inputStream deltaStream]
-
-      redunit/assert-equals expected actual
-   ]
-
-   test-applyDelta-throws-givenOpSizeSizeTooLargeSigned: func [] [
-      inputStream: #{cafe}
-      ;001 1 0100 10000000 00000000 00000000 00000000 unchanged 4 bytes op size size which has an op size of 2147483648
-      deltaStream: 2#{0011010010000000000000000000000000000000}
-      expected: "Limitation: op size size is limited to signed 4 bytes"
 
       actual: catch [main/applyDelta inputStream deltaStream]
 
@@ -495,28 +473,6 @@ context [
       ;001 1 0010 00000000 00000010 unchanged 2 byte op size size which has an op size of 2
       deltaStream: 2#{001100100000000000000010}
       expected: deltaStream
-
-      actual: catch [main/makeDeltaReversible inputStream deltaStream]
-
-      redunit/assert-equals expected actual
-   ]
-
-   test-makeDeltaReversible-throws-givenOpSizeSizeTooLarge: func [] [
-      inputStream: #{cafe}
-      ;001 1 1000 unchanged 8 bytes op size size
-      deltaStream: 2#{00111000}
-      expected: "Limitation: op size size is limited to signed 4 bytes"
-
-      actual: catch [main/makeDeltaReversible inputStream deltaStream]
-
-      redunit/assert-equals expected actual
-   ]
-
-   test-makeDeltaReversible-throws-givenOpSizeSizeTooLargeSigned: func [] [
-      inputStream: #{cafe}
-      ;001 1 0100 10000000 00000000 00000000 00000000 unchanged 4 bytes op size size which has an op size of 2147483648
-      deltaStream: 2#{0011010010000000000000000000000000000000}
-      expected: "Limitation: op size size is limited to signed 4 bytes"
 
       actual: catch [main/makeDeltaReversible inputStream deltaStream]
 

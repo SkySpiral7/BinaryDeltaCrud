@@ -103,6 +103,7 @@ main: context [
    ] [
       throw "Not yet implemented: undoDelta"
    ]
+   ;TODO: move validateInputStream to deltaIterator. maybe have parseNext take an optional param
    validateInputStream: func [
       "Validate inputStream according to deltaItr's current position."
       "@param inputStream not modified"
@@ -121,10 +122,12 @@ main: context [
                if deltaItr/operationSize > length? inputStream
                   [throw "Invalid: Not enough bytes remaining in inputStream"]
             ]
+            inputStream: skip inputStream deltaItr/operationSize
          ]
          deltaItr/operation/replace [
             if deltaItr/operationSize > length? inputStream
                [throw "Invalid: Not enough bytes remaining in inputStream"]
+            inputStream: skip inputStream deltaItr/operationSize
          ]
          deltaItr/operation/remove [
             either deltaItr/operationSize == 0 [
@@ -134,11 +137,13 @@ main: context [
                if deltaItr/operationSize > length? inputStream
                   [throw "Invalid: Not enough bytes remaining in inputStream"]
             ]
+            inputStream: skip inputStream deltaItr/operationSize
          ]
          deltaItr/operation/reversibleReplace [
             if deltaItr/operationSize > length? inputStream
                [throw "Invalid: Not enough bytes remaining in inputStream"]
             removedInputBytes: copy/part inputStream deltaItr/operationSize
+            inputStream: skip inputStream deltaItr/operationSize
             if deltaItr/oldData <> removedInputBytes
                [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
          ]
@@ -146,12 +151,13 @@ main: context [
             if deltaItr/operationSize > length? inputStream
                [throw "Invalid: Not enough bytes remaining in inputStream"]
             removedInputBytes: copy/part inputStream deltaItr/operationSize
+            inputStream: skip inputStream deltaItr/operationSize
             if deltaItr/oldData <> removedInputBytes
                [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
          ]
       ]
-      if deltaItr/operationType <> deltaItr/operation/add [inputStream: skip inputStream deltaItr/operationSize]
       if (not deltaItr/hasNext?) and (not tail? inputStream)
          [throw "Invalid: Unaccounted for bytes remaining in inputStream"]
+      return none
    ]
 ]

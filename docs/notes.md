@@ -26,6 +26,7 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 * red github wiki: https://github.com/red/red/wiki
 * rebol words: http://www.rebol.com/r3/docs/functions.html
 * rebol book: http://www.rebol.com/docs/core23/rebolcore.html
+* not a bug ref: https://github.com/red/red/issues/5435
 * rebol side affect examples http://www.rebol.com/article/0206.html
    * alter
    * append

@@ -31,12 +31,14 @@ The operations are:
 - 6 (binary 110* ****) "reversible replace" operation
 - 7 (binary 111* ****) "reversible remove" operation
 
-If the operation size flag bit is 0 then the lowest nibble is the operation size (1 to 15 bytes). If the operation size
-flag bit is 1 then the lowest nibble is the size (1 to 15 bytes) of the operation size and the actual operation size
-(1 to 256^15 bytes) will follow the header byte. The operation size is the number of bytes that the operation will use.
-An operation size of 0 is infinite which means the operation will be performed on the remaining bytes then the program
-will terminate. When the operation size flag bit is 1 the operation size is allowed to have leading 0 bytes (although
-this is a waste of bytes in the deltaStream).
+If the operation size flag bit is 0 then the lowest nibble is the operation size (1 to 15 bytes). The operation size is
+the number of bytes that the operation will use. An operation size of 0 is infinite which means the operation will be
+performed on the remaining bytes then the program will terminate.
+
+If the operation size flag bit is 1 then the lowest nibble is the size (1 to 15 bytes) of the operation size and the
+actual operation size (0 to 256^15 bytes) will follow the header byte. The lowest nibble can't be 0 since it is invalid
+for the operation size to be expressed in 0 bytes instead use 1 byte with a value of 0 or have the flag be 0. The
+operation size is allowed to have leading 0 bytes (although this is a waste of bytes in the deltaStream).
 
 For example given a header (in binary) of: 0000 0010 means that 2 bytes will be added. A deltaStream that starts with
 0011_0010 0000_0001 0000_0001 means that 257 bytes will be unchanged since the header indicated that the next 2 bytes

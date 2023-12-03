@@ -52,6 +52,7 @@ deltaIterator: context [
       opSizeBinary: #{}
       operationSize: remainingValue
       if (currentDeltaByte and mask/operationSizeFlag) == mask/operationSizeFlag [
+         if remainingValue == 0 [throw "Invalid: op size size can't be 0"]
          if remainingValue > 4 [throw "Limitation: op size size is limited to signed 4 bytes"]
          opSizeBinary: copy/part deltaStream remainingValue
          deltaStream: skip deltaStream remainingValue
@@ -117,6 +118,7 @@ deltaIterator: context [
       ] [
          throw "Invalid: operations 4-5 don't exist"
       ]
+      return none
    ]
 
    operationAndData: func [
