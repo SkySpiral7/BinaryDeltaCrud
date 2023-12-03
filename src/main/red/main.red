@@ -30,8 +30,8 @@ main: context [
                inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/reversibleReplace [
-               inputStream: skip inputStream deltaItr/operationSize
                append outputStream deltaItr/newData
+               inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/reversibleRemove [
                inputStream: skip inputStream deltaItr/operationSize
@@ -85,12 +85,12 @@ main: context [
                inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/reversibleReplace [
-               inputStream: skip inputStream deltaItr/operationSize
                append outputStream deltaItr/operationAndData
+               inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/reversibleRemove [
-               inputStream: skip inputStream deltaItr/operationSize
                append outputStream deltaItr/operationAndData
+               inputStream: skip inputStream deltaItr/operationSize
             ]
          ]
       ]

@@ -81,7 +81,7 @@ context [
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
-   test-parseNext-throw-givenAddOp0Empty: func [] [
+   test-parseNext-throws-givenAddOp0Empty: func [] [
       ;000 0 0000 add remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{00000000}]
       expected: "Invalid: Add operation must add bytes"
@@ -91,7 +91,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-parseNext-throw-givenAddOp1Empty: func [] [
+   test-parseNext-throws-givenAddOp1Empty: func [] [
       ;000 0 0001 add 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{00000001}]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
@@ -183,7 +183,7 @@ context [
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
 
-   test-parseNext-throw-givenRemoveOp0Extra: func [] [
+   test-parseNext-throws-givenRemoveOp0Extra: func [] [
       ;011 0 0000 remove remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{0110000001100000}]
       expected: "Invalid: Unaccounted for bytes remaining in deltaStream"
@@ -209,7 +209,7 @@ context [
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
-   test-parseNext-throw-givenReversibleReplaceOp0Odd: func [] [
+   test-parseNext-throws-givenReversibleReplaceOp0Odd: func [] [
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000 but no new
       deltaItr: make deltaIterator [deltaStream: 2#{1100000000000000}]
@@ -220,7 +220,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-parseNext-throw-givenReversibleReplaceOp0Empty: func [] [
+   test-parseNext-throws-givenReversibleReplaceOp0Empty: func [] [
       ;110 0 0000 reversible replace remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{11000000}]
       expected: "Invalid: Replace operation must replace bytes"
@@ -230,7 +230,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-parseNext-throw-givenReversibleReplaceOp1EmptyDelta: func [] [
+   test-parseNext-throws-givenReversibleReplaceOp1EmptyDelta: func [] [
       ;110 0 0001 reversible replace 1 byte
       ;old: 00000000 but no new
       deltaItr: make deltaIterator [deltaStream: 2#{1100000100000000}]
@@ -263,7 +263,7 @@ context [
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
 
-   test-parseNext-throw-givenReversibleRemoveOp0Empty: func [] [
+   test-parseNext-throws-givenReversibleRemoveOp0Empty: func [] [
       ;111 0 0000 reversible remove remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{11100000}]
       expected: "Invalid: Remove operation must remove bytes"
@@ -273,7 +273,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-parseNext-throw-givenReversibleRemoveOp1EmptyDelta: func [] [
+   test-parseNext-throws-givenReversibleRemoveOp1EmptyDelta: func [] [
       ;111 0 0001 reversible remove 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{11100001}]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
