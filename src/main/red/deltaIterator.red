@@ -23,14 +23,14 @@ deltaIterator: context [
    ;endregion: constants
 
    ;constructor arg
-   deltaStream: none
+   deltaStream: none  ;type? binary!
 
    ;region: derived state
-   operationBinary: none
-   operationType: none
+   operationBinary: none  ;type? binary!
+   operationType: none  ;type? integer!
    operationSize: 0
-   oldData: none
-   newData: none
+   oldData: none  ;type? binary!
+   newData: none  ;type? binary!
    ;endregion: derived state
 
    hasNext?: func [
@@ -60,7 +60,7 @@ deltaIterator: context [
          operationSize: to integer! opSizeBinary
       ]
       operationBinary: append copy #{} currentDeltaByte
-      operationBinary: append operationBinary opSizeBinary
+      append operationBinary opSizeBinary
 
       switch/default operationType reduce [
          operation/add [
@@ -119,11 +119,11 @@ deltaIterator: context [
       ]
    ]
 
-   full-binary: func [
+   operationAndData: func [
    ] [
       result: copy operationBinary
-      if oldData <> none [result: append result oldData]
-      if newData <> none [result: append result newData]
+      if oldData <> none [append result oldData]
+      if newData <> none [append result newData]
       return result
    ]
 ]
