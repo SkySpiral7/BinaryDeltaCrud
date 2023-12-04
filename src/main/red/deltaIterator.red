@@ -34,7 +34,7 @@ deltaIterator: context [
    ;endregion: derived state
 
    hasNext?: func [
-      "true if there is another delta opperation to parse"
+      "@returns true if there is another delta opperation to parse"
    ] [
       return not tail? deltaStream
    ]
@@ -181,6 +181,7 @@ deltaIterator: context [
    ]
 
    operationAndData: func [
+      "@returns the entire binary for delta's current position"
    ] [
       result: copy operationBinary
       if oldData <> none [append result oldData]

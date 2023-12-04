@@ -109,6 +109,80 @@ context [
       redunit/assert-equals expected actual
    ]
 
+   test-makeDeltaNonReversible-loops-givenMultipleDeltaOps: func [] [
+      ;001 0 0001 unchanged 1 byte. twice
+      deltaStream: 2#{0010000100100001}
+      expected: copy deltaStream
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-keepsData-givenAdd: func [] [
+      ;000 0 0000 add remaining bytes (11111111)
+      deltaStream: 2#{0000000011111111}
+      expected: copy deltaStream
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-keepsData-givenUnchanged: func [] [
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{00100000}
+      expected: copy deltaStream
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-keepsData-givenReplace: func [] [
+      ;010 0 0000 replace remaining bytes (11111111 00000000)
+      deltaStream: 2#{010000001111111100000000}
+      expected: copy deltaStream
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-keepsData-givenRemove: func [] [
+      ;011 0 0000 remove remaining bytes
+      deltaStream: 2#{01100000}
+      expected: copy deltaStream
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-makesNonReversible-givenReversibleReplace: func [] [
+      ;110 0 0000 reversible replace remaining bytes
+      ;old: 00000000, new: 11111111
+      deltaStream: 2#{110000000000000011111111}
+      ;010 0 0000 replace remaining bytes
+      ;new: 11111111
+      expected: 2#{0100000011111111}
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-makeDeltaNonReversible-makesNonReversible-givenReversibleRemove: func [] [
+      ;111 0 0000 reversible remove remaining bytes (00000000)
+      deltaStream: 2#{1110000000000000}
+      ;011 0 0000 remove remaining bytes
+      expected: 2#{01100000}
+
+      actual: catch [main/makeDeltaNonReversible deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
    test-makeDeltaReversible-loops-givenMultipleDeltaOps: func [] [
       inputStream: #{1122}
       ;001 0 0001 unchanged 1 byte. twice
