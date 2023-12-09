@@ -74,12 +74,18 @@ main: context [
                append outputStream deltaItr/operationBinary
             ]
             deltaItr/operation/reversibleReplace [
-               append outputStream (deltaItr/operationBinary and complement deltaItr/mask/reversibleFlag)
+               ;only edit the first byte of the operationBinary. it's fine to not copy since I'm done with this delta position
+               ;clear reversibleFlag
+               deltaItr/operationBinary/1: deltaItr/operationBinary/1 and complement to integer! deltaItr/mask/reversibleFlag
+               append outputStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
                append outputStream deltaItr/newData
             ]
             deltaItr/operation/reversibleRemove [
-               append outputStream (deltaItr/operationBinary and complement deltaItr/mask/reversibleFlag)
+               ;only edit the first byte of the operationBinary. it's fine to not copy since I'm done with this delta position
+               ;clear reversibleFlag
+               deltaItr/operationBinary/1: deltaItr/operationBinary/1 and complement to integer! deltaItr/mask/reversibleFlag
+               append outputStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
             ]
          ]
@@ -106,12 +112,14 @@ main: context [
                inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/replace [
+               ;don't need to grab the first byte since the 0 fill works with "or"
                append outputStream (deltaItr/operationBinary or deltaItr/mask/reversibleFlag)
                append outputStream copy/part inputStream deltaItr/operationSize
                append outputStream deltaItr/newData
                inputStream: skip inputStream deltaItr/operationSize
             ]
             deltaItr/operation/remove [
+               ;don't need to grab the first byte since the 0 fill works with "or"
                append outputStream (deltaItr/operationBinary or deltaItr/mask/reversibleFlag)
                append outputStream copy/part inputStream deltaItr/operationSize
                inputStream: skip inputStream deltaItr/operationSize

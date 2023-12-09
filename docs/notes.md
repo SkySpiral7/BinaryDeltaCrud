@@ -41,5 +41,7 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
    * replace
    * reverse
    * sort
+   * swap
    * trim
    * uppercase
+* TODO: RedUnit vs Quick test. read Quick test doc and try it out. else patch RedUnit
