@@ -303,7 +303,7 @@ context [
       redunit/assert-equals 2#{00000000} deltaItr/oldData
    ]
 
-   test-parseNext-throws-whenInputOp4: func [] [
+   test-parseNext-throws-whenOp4: func [] [
       deltaItr: make deltaIterator [deltaStream: 2#{10000000}]
       expected: "Invalid: operations 4-5 don't exist"
 
@@ -312,7 +312,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-parseNext-throws-whenInputOp5: func [] [
+   test-parseNext-throws-whenOp5: func [] [
       deltaItr: make deltaIterator [deltaStream: 2#{10100000}]
       expected: "Invalid: operations 4-5 don't exist"
 
@@ -321,218 +321,218 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-givenAdd: func [] [
+   test-withBeforeStream-doesNothing-givenAdd: func [] [
       ;000 0 0000 add remaining bytes (11111111)
-      inputStream: #{}
+      beforeStream: #{}
       deltaItr: make deltaIterator [deltaStream: 2#{0000000011111111}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-doesNothing-givenUnchangedOp0Empty: func [] [
-      inputStream: #{}
+   test-withBeforeStream-doesNothing-givenUnchangedOp0Empty: func [] [
+      beforeStream: #{}
       ;001 0 0000 remaining unchanged aka done
       deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
       redunit/assert-equals 0 deltaItr/operationSize
    ]
 
-   test-withInputStream-setsSize-givenUnchangedOp0Input: func [] [
-      inputStream: #{1122}
+   test-withBeforeStream-setsSize-givenUnchangedOp0Before: func [] [
+      beforeStream: #{1122}
       ;001 0 0000 remaining unchanged aka done
       deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
       redunit/assert-equals 2 deltaItr/operationSize
    ]
 
-   test-withInputStream-throws-givenUnchangeOp1Empty: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenUnchangeOp1Empty: func [] [
+      beforeStream: #{}
       ;001 0 0001 unchanged 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-givenValidReplace: func [] [
-      inputStream: #{00}
+   test-withBeforeStream-doesNothing-givenValidReplace: func [] [
+      beforeStream: #{00}
       ;010 0 0001 replace 1 byte (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-throws-givenReplaceOp1ShortInput: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenReplaceOp1ShortBefore: func [] [
+      beforeStream: #{}
       ;010 0 0001 replace 1 byte (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-givenRemoveOp1: func [] [
-      inputStream: #{11}
+   test-withBeforeStream-doesNothing-givenRemoveOp1: func [] [
+      beforeStream: #{11}
       ;011 0 0001 remove 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-setsSize-givenRemoveOp0: func [] [
-      inputStream: #{00}
+   test-withBeforeStream-setsSize-givenRemoveOp0: func [] [
+      beforeStream: #{00}
       ;011 0 0000 remove remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
-   test-withInputStream-throws-givenRemoveOp0Empty: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenRemoveOp0Empty: func [] [
+      beforeStream: #{}
       ;011 0 0000 remove remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
       expected: "Invalid: Remove operation must remove bytes"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-throws-givenRemoveOp1Empty: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenRemoveOp1Empty: func [] [
+      beforeStream: #{}
       ;011 0 0001 remove 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-givenValidReversibleReplace: func [] [
-      inputStream: 2#{00000000}
+   test-withBeforeStream-doesNothing-givenValidReversibleReplace: func [] [
+      beforeStream: 2#{00000000}
       ;110 0 0001 reversible replace 1 byte
       ;old: 00000000, new: 11111111
       deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-throws-givenReversibleReplaceEmptyInput: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenReversibleReplaceEmptyBefore: func [] [
+      beforeStream: #{}
       ;110 0 0001 reversible replace 1 byte
       ;old: 00000000, new: 11111111
       deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-throws-givenReversibleReplaceNoMatch: func [] [
-      inputStream: 2#{11000001}
+   test-withBeforeStream-throws-givenReversibleReplaceNoMatch: func [] [
+      beforeStream: 2#{11000001}
       ;110 0 0001 reversible replace 1 byte
       ;old: 00000000, new: 11111111
       deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
-      expected: "Invalid: bytes removed from inputStream didn't match deltaStream"
+      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-givenValidReversibleRemove: func [] [
-      inputStream: 2#{00000000}
+   test-withBeforeStream-doesNothing-givenValidReversibleRemove: func [] [
+      beforeStream: 2#{00000000}
       ;111 0 0001 reversible remove 1 byte
       ;old: 00000000
       deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-throws-givenReversibleRemoveEmptyInput: func [] [
-      inputStream: #{}
+   test-withBeforeStream-throws-givenReversibleRemoveEmptyBefore: func [] [
+      beforeStream: #{}
       ;111 0 0001 reversible remove 1 byte
       ;old: 00000000
       deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
-      expected: "Invalid: Not enough bytes remaining in inputStream"
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-throws-givenReversibleRemoveNoMatch: func [] [
-      inputStream: 2#{11000001}
+   test-withBeforeStream-throws-givenReversibleRemoveNoMatch: func [] [
+      beforeStream: 2#{11000001}
       ;111 0 0001 reversible remove 1 byte
       ;old: 00000000
       deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
-      expected: "Invalid: bytes removed from inputStream didn't match deltaStream"
+      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]
 
-   test-withInputStream-doesNothing-whenNonTerminalExtraInput: func [] [
-      inputStream: #{1122}
+   test-withBeforeStream-doesNothing-whenNonTerminalExtraBefore: func [] [
+      beforeStream: #{1122}
       ;001 0 0001 unchanged 1 byte. twice but only first is parsed
       deltaItr: make deltaIterator [deltaStream: 2#{0010000100100001}]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals none actual
    ]
 
-   test-withInputStream-throws-whenInputHasExtraBytes: func [] [
-      inputStream: #{1122}
+   test-withBeforeStream-throws-whenBeforeHasExtraBytes: func [] [
+      beforeStream: #{1122}
       ;001 0 0001 unchanged 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
-      expected: "Invalid: Unaccounted for bytes remaining in inputStream"
+      expected: "Invalid: Unaccounted for bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      actual: catch [deltaItr/withInputStream inputStream]
+      actual: catch [deltaItr/withBeforeStream beforeStream]
 
       redunit/assert-equals expected actual
    ]

@@ -42,8 +42,8 @@ deltaIterator: context [
 
    parseNext: func [
       "Will parse and interpret the next delta opperation and store the results in fields."
-      "@param inputStream must be none or binary!. Only the current position will be looked at"
-      inputStream
+      "@param beforeStream must be none or binary!. Only the current position will be looked at"
+      beforeStream
    ] [
       oldData: none
       newData: none
@@ -121,14 +121,14 @@ deltaIterator: context [
       ] [
          throw "Invalid: operations 4-5 don't exist"
       ]
-      if inputStream <> none [withInputStream inputStream]
+      if beforeStream <> none [withBeforeStream beforeStream]
       return none
    ]
 
-   withInputStream: func [
-      "Validate inputStream according to the current delta position."
-      "If operationSize = 0 then it will be set to length? inputStream."
-      inputStream[binary!]
+   withBeforeStream: func [
+      "Validate beforeStream according to the current delta position."
+      "If operationSize = 0 then it will be set to length? beforeStream."
+      beforeStream[binary!]
    ] [
       switch operationType reduce [
          operation/add [
@@ -136,48 +136,48 @@ deltaIterator: context [
          ]
          operation/unchanged [
             either operationSize == 0 [
-               operationSize: length? inputStream
-               ;op size 0 but empty input is allowed
+               operationSize: length? beforeStream
+               ;op size 0 but empty beforeStream is allowed
             ] [
-               if operationSize > length? inputStream
-                  [throw "Invalid: Not enough bytes remaining in inputStream"]
+               if operationSize > length? beforeStream
+                  [throw "Invalid: Not enough bytes remaining in beforeStream"]
             ]
-            inputStream: skip inputStream operationSize
+            beforeStream: skip beforeStream operationSize
          ]
          operation/replace [
-            if operationSize > length? inputStream
-               [throw "Invalid: Not enough bytes remaining in inputStream"]
-            inputStream: skip inputStream operationSize
+            if operationSize > length? beforeStream
+               [throw "Invalid: Not enough bytes remaining in beforeStream"]
+            beforeStream: skip beforeStream operationSize
          ]
          operation/remove [
             either operationSize == 0 [
-               operationSize: length? inputStream
+               operationSize: length? beforeStream
                if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
             ] [
-               if operationSize > length? inputStream
-                  [throw "Invalid: Not enough bytes remaining in inputStream"]
+               if operationSize > length? beforeStream
+                  [throw "Invalid: Not enough bytes remaining in beforeStream"]
             ]
-            inputStream: skip inputStream operationSize
+            beforeStream: skip beforeStream operationSize
          ]
          operation/reversibleReplace [
-            if operationSize > length? inputStream
-               [throw "Invalid: Not enough bytes remaining in inputStream"]
-            removedInputBytes: copy/part inputStream operationSize
-            inputStream: skip inputStream operationSize
-            if oldData <> removedInputBytes
-               [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
+            if operationSize > length? beforeStream
+               [throw "Invalid: Not enough bytes remaining in beforeStream"]
+            removedBytes: copy/part beforeStream operationSize
+            beforeStream: skip beforeStream operationSize
+            if oldData <> removedBytes
+               [throw "Invalid: bytes removed from beforeStream didn't match deltaStream"]
          ]
          operation/reversibleRemove [
-            if operationSize > length? inputStream
-               [throw "Invalid: Not enough bytes remaining in inputStream"]
-            removedInputBytes: copy/part inputStream operationSize
-            inputStream: skip inputStream operationSize
-            if oldData <> removedInputBytes
-               [throw "Invalid: bytes removed from inputStream didn't match deltaStream"]
+            if operationSize > length? beforeStream
+               [throw "Invalid: Not enough bytes remaining in beforeStream"]
+            removedBytes: copy/part beforeStream operationSize
+            beforeStream: skip beforeStream operationSize
+            if oldData <> removedBytes
+               [throw "Invalid: bytes removed from beforeStream didn't match deltaStream"]
          ]
       ]
-      if (not hasNext?) and (not tail? inputStream)
-         [throw "Invalid: Unaccounted for bytes remaining in inputStream"]
+      if (not hasNext?) and (not tail? beforeStream)
+         [throw "Invalid: Unaccounted for bytes remaining in beforeStream"]
       return none
    ]
 
