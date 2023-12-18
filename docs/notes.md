@@ -45,3 +45,15 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
    * trim
    * uppercase
 * TODO: RedUnit vs Quick test. read Quick test doc and try it out. else patch RedUnit
+   * quick-test repo: https://github.com/red/red/tree/master/quick-test
+   * quick-test doc: https://static.red-lang.org/red-system-quick-test.html
+   * RedUnit: https://github.com/koksyn/RedUnit
+      * trim trailing white space to test if he accepts PRs
+      * bug fix the test count when running dir
+      * have assert probe
+      * auto catch the test methods
+      * should only run startsWith test-
+      * update to latest red
+   * assert: https://codeberg.org/hiiamboris/red-common/src/branch/master/assert.md
+* TODO: can you catch specific errors?
+   * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc

@@ -20,7 +20,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-validatesbeforeStream-givenInvalidbeforeStream: func [] [
+   test-applyDelta-validatesBeforeStream-givenInvalidBeforeStream: func [] [
       beforeStream: #{}
       ;011 0 0001 remove 1 byte
       deltaStream: 2#{01100001}
@@ -194,7 +194,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-validatesbeforeStream-givenInvalidbeforeStream: func [] [
+   test-makeDeltaReversible-validatesBeforeStream-givenInvalidBeforeStream: func [] [
       beforeStream: #{}
       ;011 0 0001 remove 1 byte
       deltaStream: 2#{01100001}
@@ -283,6 +283,129 @@ context [
       expected: copy deltaStream
 
       actual: catch [main/makeDeltaReversible beforeStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-loops-givenMultipleDeltaOps: func [] [
+      afterStream: #{1122}
+      ;001 0 0001 unchanged 1 byte. twice
+      deltaStream: 2#{0010000100100001}
+      expected: #{1122}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-validatesAfterStream-givenInvalidAfterStream: func [] [
+      afterStream: #{}
+      ;000 0 0001 add 1 byte (11111111)
+      deltaStream: 2#{0000000111111111}
+      expected: "Invalid: Not enough bytes remaining in beforeStream"
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-undoesAdd-givenAdd: func [] [
+      afterStream: 2#{11111111}
+      ;000 0 0001 add 1 byte (11111111)
+      deltaStream: 2#{0000000111111111}
+      expected: #{}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-validatesAdd-givenAdd: func [] [
+      afterStream: 2#{11011011}
+      ;000 0 0001 add 1 byte (11111111)
+      deltaStream: 2#{0000000111111111}
+      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-undoesUnchanged-givenUnchanged: func [] [
+      afterStream: #{cafe}
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{00100000}
+      expected: #{cafe}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-undoesUnchanged-givenUnchangedEmptyAfter: func [] [
+      afterStream: #{}
+      ;001 0 0000 remaining unchanged aka done
+      deltaStream: 2#{00100000}
+      expected: #{}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-throws-givenReplace: func [] [
+      afterStream: 2#{1111111100000000}
+      ;010 0 0000 replace remaining bytes (11111111 00000000)
+      deltaStream: 2#{010000001111111100000000}
+      expected: "Invalid: deltaStream isn't reversible"
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-throws-givenRemove: func [] [
+      afterStream: #{}
+      ;011 0 0000 remove remaining bytes
+      deltaStream: 2#{01100000}
+      expected: "Invalid: deltaStream isn't reversible"
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-undoesReplace-givenReversibleReplace: func [] [
+      afterStream: 2#{11111111}
+      ;110 0 0000 reversible replace remaining bytes
+      ;old: 00000000, new: 11111111
+      deltaStream: 2#{110000000000000011111111}
+      expected: 2#{00000000}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-validatesReplace-givenReversibleReplace: func [] [
+      afterStream: 2#{11011011}
+      ;110 0 0000 reversible replace remaining bytes
+      ;old: 00000000, new: 11111111
+      deltaStream: 2#{110000000000000011111111}
+      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
+
+      actual: catch [main/undoDelta afterStream deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-undoDelta-undoesRemove-givenReversibleRemove: func [] [
+      afterStream: #{}
+      ;111 0 0000 reversible remove remaining bytes (00000000)
+      deltaStream: 2#{1110000000000000}
+      expected: 2#{00000000}
+
+      actual: catch [main/undoDelta afterStream deltaStream]
 
       redunit/assert-equals expected actual
    ]

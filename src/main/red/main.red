@@ -119,6 +119,7 @@ main: context [
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
             deltaItr/operation/remove [
+               ;TODO: move setting ops etc to delta class
                ;don't need to grab the first byte since the 0 fill works with "or"
                append reversibleDeltaStream (deltaItr/operationBinary or deltaItr/mask/reversibleFlag)
                append reversibleDeltaStream copy/part beforeStream deltaItr/operationSize
@@ -143,6 +144,51 @@ main: context [
       "@returns beforeStream"
       afterStream[binary!] deltaStreamParam[binary!]
    ] [
-      throw "Not yet implemented: undoDelta"
+      undoDeltaStream: copy #{}
+      deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
+      while [deltaItr/hasNext?] [
+         deltaItr/parseNext none  ;don't run normal validation yet since we have an afterStream instead of a beforeStream
+         switch deltaItr/operationType reduce [
+            deltaItr/operation/add [
+               ;TODO: could use new constants?
+               ;clear out operation bits
+               newOperationInt: deltaItr/operationBinary/1 and complement deltaItr/mask/operation
+               ;set operation bits
+               newOperationInt: newOperationInt or deltaItr/operation/reversibleRemove
+               ;it's fine to not copy since I'm done with this delta position
+               deltaItr/operationBinary/1: newOperationInt
+               append undoDeltaStream deltaItr/operationBinary
+               append undoDeltaStream deltaItr/newData
+            ]
+            deltaItr/operation/unchanged [
+               append undoDeltaStream deltaItr/operationBinary
+            ]
+            deltaItr/operation/replace [
+               throw "Invalid: deltaStream isn't reversible"
+            ]
+            deltaItr/operation/remove [
+               throw "Invalid: deltaStream isn't reversible"
+            ]
+            deltaItr/operation/reversibleReplace [
+               ;don't need to edit operationBinary. just flip the data order
+               append undoDeltaStream deltaItr/operationBinary
+               append undoDeltaStream deltaItr/newData
+               append undoDeltaStream deltaItr/oldData
+            ]
+            deltaItr/operation/reversibleRemove [
+               ;clear out operation bits
+               newOperationInt: deltaItr/operationBinary/1 and complement deltaItr/mask/operation
+               ;set operation bits
+               newOperationInt: newOperationInt or deltaItr/operation/add
+               ;it's fine to not copy since I'm done with this delta position
+               deltaItr/operationBinary/1: newOperationInt
+               append undoDeltaStream deltaItr/operationBinary
+               append undoDeltaStream deltaItr/oldData
+            ]
+         ]
+      ]
+      ;TODO: this makes all the error messages backwards. rename them to dataStream
+      ;this validates afterStream
+      return applyDelta afterStream undoDeltaStream
    ]
 ]

@@ -29,7 +29,7 @@ deltaIterator: context [
    ;region: derived state
    operationBinary: none  ;type? binary!
    operationType: none  ;type? integer!
-   operationSize: 0
+   operationSize: none  ;type? integer!
    oldData: none  ;type? binary!
    newData: none  ;type? binary!
    ;endregion: derived state
@@ -42,8 +42,8 @@ deltaIterator: context [
 
    parseNext: func [
       "Will parse and interpret the next delta opperation and store the results in fields."
-      "@param beforeStream must be none or binary!. Only the current position will be looked at"
-      beforeStream
+      "@param beforeStream only the current position will be looked at"
+      beforeStream [none! binary!]
    ] [
       oldData: none
       newData: none
