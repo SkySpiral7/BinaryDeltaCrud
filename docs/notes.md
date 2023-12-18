@@ -48,23 +48,5 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
    * swap
    * trim
    * uppercase
-* TODO: patch RedUnit
-   * quick-test
-      * repo: https://github.com/red/red/tree/master/quick-test
-      * doc: https://static.red-lang.org/red-system-quick-test.html
-      * it wasn't designed for outside use
-      * even if I did copy/paste it into my repo, the complex test-all I'd have to write in rebol
-      * the only advantage is that it dog-foods latest red. not worth it
-   * RedUnit: https://github.com/koksyn/RedUnit
-      * trim trailing white space to test if he accepts PRs
-      * bug fix the test count when running dir
-      * have assert-equals print both values
-      * auto catch the test methods
-      * should only run startsWith test-
-      * update to latest red
-   * assert: https://codeberg.org/hiiamboris/red-common/src/branch/master/assert.md
-      * is cool but part of a large repo. I think I can include only this file though
-      * I'd rather not add dependencies to RedUnit but it is really nice (much better than simple print)
-      * assert is better than #assert for RedUnit but I'm not sure about assert vs expect
 * TODO: can you catch specific errors?
    * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc
