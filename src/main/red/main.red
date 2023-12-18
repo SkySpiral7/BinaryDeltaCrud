@@ -187,8 +187,12 @@ main: context [
             ]
          ]
       ]
-      ;TODO: this makes all the error messages backwards. rename them to dataStream
       ;this validates afterStream
-      return applyDelta afterStream undoDeltaStream
+      exception: catch [return applyDelta afterStream undoDeltaStream]
+      ;in case red throws something
+      if string! <> type? exception [throw exception]
+      ;edit error message to match this undoDelta
+      exception: replace copy exception "beforeStream" "afterStream"
+      throw exception
    ]
 ]

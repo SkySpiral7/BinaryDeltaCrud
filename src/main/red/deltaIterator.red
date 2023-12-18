@@ -7,7 +7,6 @@ deltaIterator: context [
    mask: context [
       ;highest bit of 4 bytes (int size). appends 1 byte and 3 bytes
       detectUnsignedInt: append 2#{10000000} #{000000}
-      ;TODO: can I use a struct to binary/int easily?
       reversibleFlag: 2#{10000000}
       operation: to integer! 2#{11100000}
       operationSizeFlag: to integer! 2#{00010000}

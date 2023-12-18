@@ -302,7 +302,7 @@ context [
       afterStream: #{}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
-      expected: "Invalid: Not enough bytes remaining in beforeStream"
+      expected: "Invalid: Not enough bytes remaining in afterStream"
 
       actual: catch [main/undoDelta afterStream deltaStream]
 
@@ -324,7 +324,7 @@ context [
       afterStream: 2#{11011011}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
-      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
+      expected: "Invalid: bytes removed from afterStream didn't match deltaStream"
 
       actual: catch [main/undoDelta afterStream deltaStream]
 
@@ -392,7 +392,7 @@ context [
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
       deltaStream: 2#{110000000000000011111111}
-      expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
+      expected: "Invalid: bytes removed from afterStream didn't match deltaStream"
 
       actual: catch [main/undoDelta afterStream deltaStream]
 

@@ -24,6 +24,10 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 * red docs: https://github.com/red/docs/blob/master/en/SUMMARY.adoc
    * vid doc: https://github.com/red/docs/blob/master/en/vid.adoc
 * red github wiki: https://github.com/red/red/wiki
+* Red/System spec: https://static.red-lang.org/red-system-specs.html
+   * requires compilation for some reason
+   * struct! is only in the /System for some reason
+   * struct! doesn't support binary! types (although it does have byte!)
 * rebol words: http://www.rebol.com/r3/docs/functions.html
 * rebol book: http://www.rebol.com/docs/core23/rebolcore.html
 * not a bug ref: https://github.com/red/red/issues/5435
@@ -44,9 +48,13 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
    * swap
    * trim
    * uppercase
-* TODO: RedUnit vs Quick test. read Quick test doc and try it out. else patch RedUnit
-   * quick-test repo: https://github.com/red/red/tree/master/quick-test
-   * quick-test doc: https://static.red-lang.org/red-system-quick-test.html
+* TODO: patch RedUnit
+   * quick-test
+      * repo: https://github.com/red/red/tree/master/quick-test
+      * doc: https://static.red-lang.org/red-system-quick-test.html
+      * it wasn't designed for outside use
+      * even if I did copy/paste it into my repo, the complex test-all I'd have to write in rebol
+      * the only advantage is that it dog-foods latest red. not worth it
    * RedUnit: https://github.com/koksyn/RedUnit
       * trim trailing white space to test if he accepts PRs
       * bug fix the test count when running dir
@@ -55,5 +63,8 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
       * should only run startsWith test-
       * update to latest red
    * assert: https://codeberg.org/hiiamboris/red-common/src/branch/master/assert.md
+      * is cool but part of a large repo. I think I can include only this file though
+      * I'd rather not add dependencies to RedUnit but it is really nice (much better than probe)
+      * assert is better than #assert for RedUnit but I'm not sure about assert vs expect
 * TODO: can you catch specific errors?
    * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc
