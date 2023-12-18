@@ -7,7 +7,7 @@ deltaIterator: context [
    mask: context [
       ;highest bit of 4 bytes (int size). appends 1 byte and 3 bytes
       detectUnsignedInt: append 2#{10000000} #{000000}
-      reversibleFlag: 2#{10000000}
+      reversibleFlag: to integer! 2#{10000000}
       operation: to integer! 2#{11100000}
       operationSizeFlag: to integer! 2#{00010000}
       remaining: to integer! 2#{00001111}
@@ -187,5 +187,35 @@ deltaIterator: context [
       if oldData <> none [append result oldData]
       if newData <> none [append result newData]
       return result
+   ]
+
+   setReversibleFlag: func [
+      "makes the current operation's reversible flag be set to true"
+      "WARN: operationType isn't updated"
+   ] [
+      operationBinary/1: operationBinary/1 or mask/reversibleFlag
+      return none
+   ]
+
+   clearReversibleFlag: func [
+      "makes the current operation's reversible flag be set to false"
+      "WARN: operationType isn't updated"
+   ] [
+      operationBinary/1: operationBinary/1 and complement mask/reversibleFlag
+      return none
+   ]
+
+   setOperation: func [
+      "Sets the operation"
+      "WARN: unvalidated"
+      "WARN: operationType isn't updated"
+      newOperation[integer!]
+   ] [
+      ;clear out operation bits
+      tempOperation: operationBinary/1 and complement mask/operation
+      ;set operation bits
+      tempOperation: tempOperation or newOperation
+      operationBinary/1: tempOperation
+      return none
    ]
 ]

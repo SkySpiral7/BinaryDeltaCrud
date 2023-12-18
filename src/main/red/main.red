@@ -74,17 +74,13 @@ main: context [
                append nonReversibleDeltaStream deltaItr/operationBinary
             ]
             deltaItr/operation/reversibleReplace [
-               ;only edit the first byte of the operationBinary. it's fine to not copy since I'm done with this delta position
-               ;clear reversibleFlag
-               deltaItr/operationBinary/1: deltaItr/operationBinary/1 and complement to integer! deltaItr/mask/reversibleFlag
+               deltaItr/clearReversibleFlag
                append nonReversibleDeltaStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
                append nonReversibleDeltaStream deltaItr/newData
             ]
             deltaItr/operation/reversibleRemove [
-               ;only edit the first byte of the operationBinary. it's fine to not copy since I'm done with this delta position
-               ;clear reversibleFlag
-               deltaItr/operationBinary/1: deltaItr/operationBinary/1 and complement to integer! deltaItr/mask/reversibleFlag
+               deltaItr/clearReversibleFlag
                append nonReversibleDeltaStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
             ]
@@ -112,16 +108,15 @@ main: context [
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
             deltaItr/operation/replace [
-               ;don't need to grab the first byte since the 0 fill works with "or"
-               append reversibleDeltaStream (deltaItr/operationBinary or deltaItr/mask/reversibleFlag)
+               deltaItr/setReversibleFlag
+               append reversibleDeltaStream deltaItr/operationBinary
                append reversibleDeltaStream copy/part beforeStream deltaItr/operationSize
                append reversibleDeltaStream deltaItr/newData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
             deltaItr/operation/remove [
-               ;TODO: move setting ops etc to delta class
-               ;don't need to grab the first byte since the 0 fill works with "or"
-               append reversibleDeltaStream (deltaItr/operationBinary or deltaItr/mask/reversibleFlag)
+               deltaItr/setReversibleFlag
+               append reversibleDeltaStream deltaItr/operationBinary
                append reversibleDeltaStream copy/part beforeStream deltaItr/operationSize
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
@@ -150,13 +145,7 @@ main: context [
          deltaItr/parseNext none  ;don't run normal validation yet since we have an afterStream instead of a beforeStream
          switch deltaItr/operationType reduce [
             deltaItr/operation/add [
-               ;TODO: could use new constants?
-               ;clear out operation bits
-               newOperationInt: deltaItr/operationBinary/1 and complement deltaItr/mask/operation
-               ;set operation bits
-               newOperationInt: newOperationInt or deltaItr/operation/reversibleRemove
-               ;it's fine to not copy since I'm done with this delta position
-               deltaItr/operationBinary/1: newOperationInt
+               deltaItr/setOperation deltaItr/operation/reversibleRemove
                append undoDeltaStream deltaItr/operationBinary
                append undoDeltaStream deltaItr/newData
             ]
@@ -176,12 +165,7 @@ main: context [
                append undoDeltaStream deltaItr/oldData
             ]
             deltaItr/operation/reversibleRemove [
-               ;clear out operation bits
-               newOperationInt: deltaItr/operationBinary/1 and complement deltaItr/mask/operation
-               ;set operation bits
-               newOperationInt: newOperationInt or deltaItr/operation/add
-               ;it's fine to not copy since I'm done with this delta position
-               deltaItr/operationBinary/1: newOperationInt
+               deltaItr/setOperation deltaItr/operation/add
                append undoDeltaStream deltaItr/operationBinary
                append undoDeltaStream deltaItr/oldData
             ]
