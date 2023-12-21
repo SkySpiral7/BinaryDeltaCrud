@@ -109,6 +109,55 @@ context [
       redunit/assert-equals expected actual
    ]
 
+   test-generateDelta-returnsUnchangedAll-givenSameStreams: func [] [
+      beforeStream: #{cafebabe}
+      afterStream: copy beforeStream
+      ;001 0 0000 remaining unchanged aka done
+      expected: 2#{00100000}
+
+      actual: catch [main/generateDelta beforeStream afterStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-generateDelta-returnsUnchangedHeaderThenRemove-givenSameStartThenShort: func [] [
+      beforeStream: #{cafebabe}
+      afterStream: #{cafe}
+      ;001 1 0100 unchanged op size size 4
+      ;op: 00000000 00000000 00000000 00000010 = op size 2
+      ;011 0 0000 remove remaining bytes
+      expected: 2#{001101000000000000000000000000000000001001100000}
+
+      actual: catch [main/generateDelta beforeStream afterStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-generateDelta-returnsAdd-givenShort: func [] [
+      beforeStream: #{}
+      afterStream: #{babe}
+      ;000 0 0000 add remaining bytes (ba: 10111010 be: 10111110)
+      expected: 2#{000000001011101010111110}
+
+      actual: catch [main/generateDelta beforeStream afterStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-generateDelta-returnsReplaceThenDone-givenOnlyDiff: func [] [
+      beforeStream: #{cafe}
+      afterStream: #{babe}
+      ;010 1 0100 replace op size size 4
+      ;op: 00000000 00000000 00000000 00000010 = op size 2
+      ;new data: ba: 10111010 be: 10111110
+      ;001 0 0000 remaining unchanged (done)
+      expected: 2#{0101010000000000000000000000000000000010101110101011111000100000}
+
+      actual: catch [main/generateDelta beforeStream afterStream]
+
+      redunit/assert-equals expected actual
+   ]
+
    test-makeDeltaNonReversible-loops-givenMultipleDeltaOps: func [] [
       ;001 0 0001 unchanged 1 byte. twice
       deltaStream: 2#{0010000100100001}

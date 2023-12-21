@@ -44,10 +44,68 @@ main: context [
    generateDelta: func [
       "Generate a delta that describes the changes needed for beforeStream to become afterStream."
       "Note that this problem is unsolvable (TSP)."
+      "@param all of both streams will be looked at. They are expected to start at head"
       "@returns deltaStream"
       beforeStream[binary!] afterStream[binary!]
    ] [
-      throw "Not yet implemented: generateDelta"
+      beforeStream: head beforeStream
+      afterStream: head afterStream
+      ;unchanged remaining (empty or not). defensive copy
+      ;TODO: use constants
+      if beforeStream = afterStream [return copy 2#{00100000}]
+      deltaStream: copy #{}
+
+      headUnchangedCount: 0
+      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 = afterStream/1)] [
+         headUnchangedCount: headUnchangedCount + 1
+         beforeStream: next beforeStream
+         afterStream: next afterStream
+      ]
+      if headUnchangedCount > 0 [
+         ;unchanged op size size 4
+         deltaStream: append deltaStream 2#{00110100}
+         ;TODO: inefficent packing. the other delta func should also compact
+         deltaStream: append deltaStream to binary! headUnchangedCount
+      ]
+
+      ;TODO: to avoid overlap with headUnchangedCount I'd have to copy what remains
+      comment {
+      tailUnchangedCount: 0
+      beforeStream: last beforeStream
+      afterStream: last afterStream
+      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 = afterStream/1)] [
+         headUnchangedCount: headUnchangedCount + 1
+         beforeStream: next beforeStream
+         afterStream: next afterStream
+      ]
+      }
+
+      if (not tail? beforeStream) and (not tail? afterStream) [
+         ;replace op size size 4
+         deltaStream: append deltaStream 2#{01010100}
+         ;replace as much as possible. will be the rest of at least 1 stream
+         replaceLength: min (length? beforeStream) (length? afterStream)
+         deltaStream: append deltaStream to binary! replaceLength
+         deltaStream: append deltaStream copy/part afterStream replaceLength
+         beforeStream: skip beforeStream replaceLength
+         afterStream: skip afterStream replaceLength
+      ]
+
+      if (tail? beforeStream) and (tail? afterStream) [
+         ;unchanged remaining (done)
+         deltaStream: append deltaStream 2#{00100000}
+         return deltaStream
+      ]
+      if tail? beforeStream [
+         ;add remaining
+         deltaStream: append deltaStream 2#{00000000}
+         deltaStream: append deltaStream afterStream
+         return deltaStream
+      ]
+      if not tail? afterStream [throw "Bug in generateDelta: afterStream should be at tail at bottom"]
+      ;remove remaining
+      deltaStream: append deltaStream 2#{01100000}
+      return deltaStream
    ]
    makeDeltaNonReversible: func [
       "Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact)."
@@ -176,7 +234,7 @@ main: context [
       ;in case red throws something
       if string! <> type? exception [throw exception]
       ;edit error message to match this undoDelta
-      exception: replace copy exception "beforeStream" "afterStream"
+      exception: replace/case copy exception "beforeStream" "afterStream"
       throw exception
    ]
 ]
