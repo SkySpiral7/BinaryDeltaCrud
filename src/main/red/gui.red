@@ -2,4 +2,8 @@ Red [
    Title: "Entrance for gui"
    Needs: 'View
 ]
-view [text "Hello World!"]
+gui: context [
+   launch: func [] [
+      view [text "Hello World!"]
+   ]
+]

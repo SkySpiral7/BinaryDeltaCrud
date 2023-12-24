@@ -2,13 +2,30 @@ Red [
    Title: "Entrance for cli"
 ]
 
-; TODO: if no args then gui
-arg1: to integer! system/options/args/1
-arg2: to integer! system/options/args/2
-
 #include %main.red
+#include %gui.red
+print ""  ;to separate from the junk that view prints
 
-print main/add arg1 arg2
-
-; if system/options/args
-; foreach singleArg system/options/args [print ["> " singleArg]]
+either (empty? system/options/args) or (system/options/args/1 = "gui") [
+   gui/launch
+] [
+   switch/default system/options/args/1 [
+      "applyDelta" [
+         beforeStream: to binary! read (to file! system/options/args/2)
+         deltaStream: to binary! read (to file! system/options/args/3)
+         afterStream: main/applyDelta beforeStream deltaStream
+         write (to file! system/options/args/4) afterStream
+      ]
+   ] [
+      ;TODO: untab help
+      print {
+         gui
+         applyDelta beforeStream deltaStream => afterStream
+         generateDelta beforeStream afterStream => deltaStream
+         makeDeltaNonReversible deltaStream => deltaStream
+         makeDeltaReversible beforeStream deltaStream => deltaStream
+         undoDelta afterStream deltaStream => beforeStream
+         help
+      }
+   ]
+]
