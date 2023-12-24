@@ -40,8 +40,8 @@ deltaIterator: context [
    ]
 
    parseNext: func [
-      "Will parse and interpret the next delta opperation and store the results in fields."
-      "@param beforeStream only the current position will be looked at"
+      {Will parse and interpret the next delta opperation and store the results in fields.
+      @param beforeStream only the current position will be looked at}
       beforeStream [none! binary!]
    ] [
       oldData: none
@@ -125,8 +125,8 @@ deltaIterator: context [
    ]
 
    withBeforeStream: func [
-      "Validate beforeStream according to the current delta position."
-      "If operationSize = 0 then it will be set to length? beforeStream."
+      {Validate beforeStream according to the current delta position.
+      If operationSize = 0 then it will be set to length? beforeStream.}
       beforeStream[binary!]
    ] [
       switch operationType reduce [
@@ -190,25 +190,25 @@ deltaIterator: context [
    ]
 
    setReversibleFlag: func [
-      "makes the current operation's reversible flag be set to true"
-      "WARN: operationType isn't updated"
+      {makes the current operation's reversible flag be set to true
+      WARN: operationType isn't updated}
    ] [
       operationBinary/1: operationBinary/1 or mask/reversibleFlag
       return none
    ]
 
    clearReversibleFlag: func [
-      "makes the current operation's reversible flag be set to false"
-      "WARN: operationType isn't updated"
+      {makes the current operation's reversible flag be set to false
+      WARN: operationType isn't updated}
    ] [
       operationBinary/1: operationBinary/1 and complement mask/reversibleFlag
       return none
    ]
 
    setOperation: func [
-      "Sets the operation"
-      "WARN: unvalidated"
-      "WARN: operationType isn't updated"
+      {Sets the operation
+      WARN: unvalidated
+      WARN: operationType isn't updated}
       newOperation[integer!]
    ] [
       ;clear out operation bits

@@ -48,5 +48,6 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
    * swap
    * trim
    * uppercase
+* is an actual bug (gather with `about/debug`): https://github.com/red/red/issues/5451
 * TODO: can you catch specific errors?
    * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc

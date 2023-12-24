@@ -6,9 +6,9 @@ Red [
 
 main: context [
    applyDelta: func [
-      "Modify the beforeStream according to the deltaStream and return the afterStream."
-      "@param beforeStream isn't mutated instead see return value"
-      "@returns afterStream"
+      {Modify the beforeStream according to the deltaStream and return the afterStream.
+      @param beforeStream isn't mutated instead see return value
+      @returns afterStream}
       beforeStream[binary!] deltaStreamParam[binary!]
    ] [
       afterStream: copy #{}
@@ -42,21 +42,21 @@ main: context [
       return afterStream
    ]
    generateDelta: func [
-      "Generate a delta that describes the changes needed for beforeStream to become afterStream."
-      "Note that this problem is unsolvable (TSP)."
-      "@param all of both streams will be looked at. They are expected to start at head"
-      "@returns deltaStream"
+      {Generate a delta that describes the changes needed for beforeStream to become afterStream.
+      Note that this problem is unsolvable (TSP).
+      @param all of both streams will be looked at. They are expected to start at head
+      @returns deltaStream}
       beforeStream[binary!] afterStream[binary!]
    ] [
       beforeStream: head beforeStream
       afterStream: head afterStream
       ;unchanged remaining (empty or not). defensive copy
       ;TODO: use constants
-      if beforeStream = afterStream [return copy 2#{00100000}]
+      if beforeStream == afterStream [return copy 2#{00100000}]
       deltaStream: copy #{}
 
       headUnchangedCount: 0
-      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 = afterStream/1)] [
+      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 == afterStream/1)] [
          headUnchangedCount: headUnchangedCount + 1
          beforeStream: next beforeStream
          afterStream: next afterStream
@@ -73,7 +73,7 @@ main: context [
       tailUnchangedCount: 0
       beforeStream: last beforeStream
       afterStream: last afterStream
-      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 = afterStream/1)] [
+      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 == afterStream/1)] [
          headUnchangedCount: headUnchangedCount + 1
          beforeStream: next beforeStream
          afterStream: next afterStream
@@ -108,10 +108,10 @@ main: context [
       return deltaStream
    ]
    makeDeltaNonReversible: func [
-      "Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact)."
-      "The reversible information is stripped without validation and thus this function doesn't require beforeStream."
-      "@param deltaStreamParam isn't mutated instead see return value"
-      "@returns the new deltaStream"
+      {Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact).
+      The reversible information is stripped without validation and thus this function doesn't require beforeStream.
+      @param deltaStreamParam isn't mutated instead see return value
+      @returns the new deltaStream}
       deltaStreamParam[binary!]
    ] [
       nonReversibleDeltaStream: copy #{}
@@ -147,10 +147,10 @@ main: context [
       return nonReversibleDeltaStream
    ]
    makeDeltaReversible: func [
-      "Modify a deltaStream according to beforeStream so that the deltaStream could be reversed"
-      "(and thus less compact)."
-      "@param deltaStreamParam isn't mutated instead see return value"
-      "@returns the new deltaStream"
+      {Modify a deltaStream according to beforeStream so that the deltaStream could be reversed
+      (and thus less compact).
+      @param deltaStreamParam isn't mutated instead see return value
+      @returns the new deltaStream}
       beforeStream[binary!] deltaStreamParam[binary!]
    ] [
       reversibleDeltaStream: copy #{}
@@ -191,10 +191,10 @@ main: context [
       return reversibleDeltaStream
    ]
    undoDelta: func [
-      "Modify the afterStream according to the opposite of deltaStream and return the beforeStream."
-      "Only possible if deltaStream is reversible."
-      "@param afterStream isn't mutated instead see return value"
-      "@returns beforeStream"
+      {Modify the afterStream according to the opposite of deltaStream and return the beforeStream.
+      Only possible if deltaStream is reversible.
+      @param afterStream isn't mutated instead see return value
+      @returns beforeStream}
       afterStream[binary!] deltaStreamParam[binary!]
    ] [
       undoDeltaStream: copy #{}
