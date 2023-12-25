@@ -6,13 +6,13 @@ Red [
 #include %gui.red
 print ""  ;to separate from the junk that view prints
 
-either (empty? system/options/args) or (system/options/args/1 = "gui") [
+either (empty? system/options/args) or (system/options/args/1 == "gui") [
    gui/launch
 ] [
    switch/default system/options/args/1 [
       "applyDelta" [
-         beforeStream: to binary! read (to file! system/options/args/2)
-         deltaStream: to binary! read (to file! system/options/args/3)
+         beforeStream: read/binary (to file! system/options/args/2)
+         deltaStream: read/binary (to file! system/options/args/3)
          afterStream: main/applyDelta beforeStream deltaStream
          write (to file! system/options/args/4) afterStream
       ]
