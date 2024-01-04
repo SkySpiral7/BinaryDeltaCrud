@@ -17,15 +17,14 @@ either (empty? system/options/args) or (system/options/args/1 == "gui") [
          write (to file! system/options/args/4) afterStream
       ]
    ] [
-      ;TODO: untab help
-      print {
-         gui
-         applyDelta beforeStream deltaStream => afterStream
-         generateDelta beforeStream afterStream => deltaStream
-         makeDeltaNonReversible deltaStream => deltaStream
-         makeDeltaReversible beforeStream deltaStream => deltaStream
-         undoDelta afterStream deltaStream => beforeStream
-         help
-      }
+      print to string! reduce [
+         "gui" newline
+         "applyDelta beforeStreamFile deltaStreamFile => afterStreamFile" newline
+         "generateDelta beforeStreamFile afterStreamFile => deltaStreamFile" newline
+         "makeDeltaNonReversible deltaStreamFile => deltaStreamFile" newline
+         "makeDeltaReversible beforeStreamFile deltaStreamFile => deltaStreamFile" newline
+         "undoDelta afterStreamFile deltaStreamFile => beforeStreamFile" newline
+         "help"
+      ]
    ]
 ]

@@ -2,7 +2,7 @@ Red [
    Title: "run single test file"
 ]
 
-#include %../../RedUnit/src/redunit.red
+#include %../lib/RedUnit/src/redunit.red
 redunit/run %singleTest.red
 
 ;redunit/run %../src/test/red/cli-tests.red

@@ -21,35 +21,16 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 
 
 # learn red
-* red by example: https://www.red-by-example.org/
+* red by example (includes word list): https://www.red-by-example.org/
 * red docs: https://github.com/red/docs/blob/master/en/SUMMARY.adoc
    * vid doc: https://github.com/red/docs/blob/master/en/vid.adoc
 * red github wiki: https://github.com/red/red/wiki
 * Red/System spec: https://static.red-lang.org/red-system-specs.html
+   * is a separate file type for some reason instead of being added directly to Red
    * requires compilation for some reason
    * struct! is only in the /System for some reason
    * struct! doesn't support binary! types (although it does have byte!)
 * rebol words: http://www.rebol.com/r3/docs/functions.html
 * rebol book: http://www.rebol.com/docs/core23/rebolcore.html
-* not a bug ref: https://github.com/red/red/issues/5435
-* rebol side affect examples http://www.rebol.com/article/0206.html
-   * alter
-   * append
-   * change
-   * clear
-   * detab
-   * entab
-   * insert
-   * lowercase
-   * remove
-   * remove-each
-   * replace
-   * reverse
-   * sort
-   * swap
-   * trim
-   * uppercase
-* is an actual bug (gather with `about/debug`): https://github.com/red/red/issues/5451
 * TODO: can you catch specific errors?
    * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc
-* TODO: use git submodules instead of expecting adjacent libs

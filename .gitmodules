@@ -1,0 +1,4 @@
+[submodule "lib/RedUnit"]
+	path = lib/RedUnit
+	url = git@github.com:SkySpiral7/RedUnit.git
+	branch = master
