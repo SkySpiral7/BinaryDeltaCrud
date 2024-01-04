@@ -5,7 +5,7 @@ Red [
 #include %deltaIterator.red
 
 main: context [
-   applyDelta: func [
+   applyDelta: function [
       {Modify the beforeStream according to the deltaStream and return the afterStream.
       @param beforeStream isn't mutated instead see return value
       @returns afterStream}
@@ -41,7 +41,7 @@ main: context [
       ]
       return afterStream
    ]
-   generateDelta: func [
+   generateDelta: function [
       {Generate a delta that describes the changes needed for beforeStream to become afterStream.
       Note that this problem is unsolvable (TSP).
       @param all of both streams will be looked at. They are expected to start at head
@@ -64,8 +64,8 @@ main: context [
       if headUnchangedCount > 0 [
          ;unchanged op size size 4
          deltaStream: append deltaStream 2#{00110100}
-         ;TODO: inefficent packing. the other delta func should also compact
-         ;a massage func makes sense to have: it should also shrink op sizes to fit
+         ;TODO: inefficent packing. the other delta function should also compact
+         ;a massage function makes sense to have: it should also shrink op sizes to fit
          deltaStream: append deltaStream to binary! headUnchangedCount
       ]
 
@@ -108,7 +108,7 @@ main: context [
       deltaStream: append deltaStream 2#{01100000}
       return deltaStream
    ]
-   makeDeltaNonReversible: func [
+   makeDeltaNonReversible: function [
       {Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact).
       The reversible information is stripped without validation and thus this function doesn't require beforeStream.
       @param deltaStreamParam isn't mutated instead see return value
@@ -147,7 +147,7 @@ main: context [
       ]
       return nonReversibleDeltaStream
    ]
-   makeDeltaReversible: func [
+   makeDeltaReversible: function [
       {Modify a deltaStream according to beforeStream so that the deltaStream could be reversed
       (and thus less compact).
       @param deltaStreamParam isn't mutated instead see return value
@@ -191,7 +191,7 @@ main: context [
       ]
       return reversibleDeltaStream
    ]
-   undoDelta: func [
+   undoDelta: function [
       {Modify the afterStream according to the opposite of deltaStream and return the beforeStream.
       Only possible if deltaStream is reversible.
       @param afterStream isn't mutated instead see return value

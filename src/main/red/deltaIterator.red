@@ -33,7 +33,7 @@ deltaIterator: context [
    newData: none  ;type? binary!
    ;endregion: derived state
 
-   hasNext?: func [
+   hasNext?: function [
       "@returns true if there is another delta opperation to parse"
    ] [
       return not tail? deltaStream
@@ -43,6 +43,7 @@ deltaIterator: context [
       {Will parse and interpret the next delta opperation and store the results in fields.
       @param beforeStream only the current position will be looked at}
       beforeStream [none! binary!]
+      /local currentDeltaByte remainingValue opSizeBinary
    ] [
       oldData: none
       newData: none
@@ -128,6 +129,7 @@ deltaIterator: context [
       {Validate beforeStream according to the current delta position.
       If operationSize = 0 then it will be set to length? beforeStream.}
       beforeStream[binary!]
+      /local removedBytes
    ] [
       switch operationType reduce [
          operation/add [
@@ -182,6 +184,7 @@ deltaIterator: context [
 
    operationAndData: func [
       "@returns the entire binary for delta's current position"
+      /local result
    ] [
       result: copy operationBinary
       if oldData <> none [append result oldData]
@@ -191,31 +194,31 @@ deltaIterator: context [
 
    setReversibleFlag: func [
       {makes the current operation's reversible flag be set to true
-      WARN: operationType isn't updated}
+      WARN: unvalidated and no other variables are updated}
    ] [
       operationBinary/1: operationBinary/1 or mask/reversibleFlag
-      return none
+      exit
    ]
 
    clearReversibleFlag: func [
       {makes the current operation's reversible flag be set to false
-      WARN: operationType isn't updated}
+      WARN: no other variables are updated}
    ] [
       operationBinary/1: operationBinary/1 and complement mask/reversibleFlag
-      return none
+      exit
    ]
 
    setOperation: func [
       {Sets the operation
-      WARN: unvalidated
-      WARN: operationType isn't updated}
+      WARN: unvalidated and no other variables are updated}
       newOperation[integer!]
+      /local tempOperation
    ] [
       ;clear out operation bits
       tempOperation: operationBinary/1 and complement mask/operation
       ;set operation bits
       tempOperation: tempOperation or newOperation
       operationBinary/1: tempOperation
-      return none
+      exit
    ]
 ]

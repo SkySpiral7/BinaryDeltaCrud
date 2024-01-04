@@ -3,13 +3,13 @@ Red [
 ]
 
 context [
-   setup: func [
+   setup: function [
       "Initialize/Reload context before each test"
    ] [
       do %../../main/red/main.red
    ]
 
-   test-applyDelta-loops-givenMultipleDeltaOps: func [] [
+   test-applyDelta-loops-givenMultipleDeltaOps: function [] [
       beforeStream: #{1122}
       ;001 0 0001 unchanged 1 byte. twice
       deltaStream: 2#{0010000100100001}
@@ -20,7 +20,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-validatesBeforeStream-givenInvalidBeforeStream: func [] [
+   test-applyDelta-validatesBeforeStream-givenInvalidBeforeStream: function [] [
       beforeStream: #{}
       ;011 0 0001 remove 1 byte
       deltaStream: 2#{01100001}
@@ -31,7 +31,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesAdd-givenAdd: func [] [
+   test-applyDelta-doesAdd-givenAdd: function [] [
       beforeStream: #{}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
@@ -42,7 +42,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesUnchanged-givenUnchanged: func [] [
+   test-applyDelta-doesUnchanged-givenUnchanged: function [] [
       beforeStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -53,7 +53,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesUnchanged-givenUnchangedEmptyBefore: func [] [
+   test-applyDelta-doesUnchanged-givenUnchangedEmptyBefore: function [] [
       beforeStream: #{}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -64,7 +64,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesReplace-givenReplace: func [] [
+   test-applyDelta-doesReplace-givenReplace: function [] [
       beforeStream: #{cafe}
       ;010 0 0000 replace remaining bytes (11111111 00000000)
       deltaStream: 2#{010000001111111100000000}
@@ -75,7 +75,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesRemove-givenRemove: func [] [
+   test-applyDelta-doesRemove-givenRemove: function [] [
       beforeStream: #{cafe}
       ;011 0 0000 remove remaining bytes
       deltaStream: 2#{01100000}
@@ -86,7 +86,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesReplace-givenReversibleReplace: func [] [
+   test-applyDelta-doesReplace-givenReversibleReplace: function [] [
       beforeStream: 2#{00000000}
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
@@ -98,7 +98,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-applyDelta-doesRemove-givenReversibleRemove: func [] [
+   test-applyDelta-doesRemove-givenReversibleRemove: function [] [
       beforeStream: 2#{00000000}
       ;111 0 0000 reversible remove remaining bytes (00000000)
       deltaStream: 2#{1110000000000000}
@@ -109,7 +109,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-generateDelta-returnsUnchangedAll-givenSameStreams: func [] [
+   test-generateDelta-returnsUnchangedAll-givenSameStreams: function [] [
       beforeStream: #{cafebabe}
       afterStream: copy beforeStream
       ;001 0 0000 remaining unchanged aka done
@@ -120,7 +120,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-generateDelta-returnsUnchangedHeaderThenRemove-givenSameStartThenShort: func [] [
+   test-generateDelta-returnsUnchangedHeaderThenRemove-givenSameStartThenShort: function [] [
       beforeStream: #{cafebabe}
       afterStream: #{cafe}
       ;001 1 0100 unchanged op size size 4
@@ -133,7 +133,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-generateDelta-returnsAdd-givenShort: func [] [
+   test-generateDelta-returnsAdd-givenShort: function [] [
       beforeStream: #{}
       afterStream: #{babe}
       ;000 0 0000 add remaining bytes (ba: 10111010 be: 10111110)
@@ -144,7 +144,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-generateDelta-returnsReplaceThenDone-givenOnlyDiff: func [] [
+   test-generateDelta-returnsReplaceThenDone-givenOnlyDiff: function [] [
       beforeStream: #{cafe}
       afterStream: #{babe}
       ;010 1 0100 replace op size size 4
@@ -158,7 +158,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-loops-givenMultipleDeltaOps: func [] [
+   test-makeDeltaNonReversible-loops-givenMultipleDeltaOps: function [] [
       ;001 0 0001 unchanged 1 byte. twice
       deltaStream: 2#{0010000100100001}
       expected: copy deltaStream
@@ -168,7 +168,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-keepsData-givenAdd: func [] [
+   test-makeDeltaNonReversible-keepsData-givenAdd: function [] [
       ;000 0 0000 add remaining bytes (11111111)
       deltaStream: 2#{0000000011111111}
       expected: copy deltaStream
@@ -178,7 +178,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-keepsData-givenUnchanged: func [] [
+   test-makeDeltaNonReversible-keepsData-givenUnchanged: function [] [
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
       expected: copy deltaStream
@@ -188,7 +188,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-keepsData-givenReplace: func [] [
+   test-makeDeltaNonReversible-keepsData-givenReplace: function [] [
       ;010 0 0000 replace remaining bytes (11111111 00000000)
       deltaStream: 2#{010000001111111100000000}
       expected: copy deltaStream
@@ -198,7 +198,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-keepsData-givenRemove: func [] [
+   test-makeDeltaNonReversible-keepsData-givenRemove: function [] [
       ;011 0 0000 remove remaining bytes
       deltaStream: 2#{01100000}
       expected: copy deltaStream
@@ -208,7 +208,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-makesNonReversible-givenReversibleReplace: func [] [
+   test-makeDeltaNonReversible-makesNonReversible-givenReversibleReplace: function [] [
       ;110 1 0001 00000001 reversible replace 1 byte
       ;old: 00000000, new: 11111111
       deltaStream: 2#{11010001000000010000000011111111}
@@ -221,7 +221,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaNonReversible-makesNonReversible-givenReversibleRemove: func [] [
+   test-makeDeltaNonReversible-makesNonReversible-givenReversibleRemove: function [] [
       ;111 1 0001 00000001 reversible remove 1 byte (00000000)
       deltaStream: 2#{111100010000000100000000}
       ;011 1 0001 00000001 remove 1 byte
@@ -232,7 +232,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-loops-givenMultipleDeltaOps: func [] [
+   test-makeDeltaReversible-loops-givenMultipleDeltaOps: function [] [
       beforeStream: #{1122}
       ;001 0 0001 unchanged 1 byte. twice
       deltaStream: 2#{0010000100100001}
@@ -243,7 +243,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-validatesBeforeStream-givenInvalidBeforeStream: func [] [
+   test-makeDeltaReversible-validatesBeforeStream-givenInvalidBeforeStream: function [] [
       beforeStream: #{}
       ;011 0 0001 remove 1 byte
       deltaStream: 2#{01100001}
@@ -254,7 +254,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-keepsData-givenAdd: func [] [
+   test-makeDeltaReversible-keepsData-givenAdd: function [] [
       beforeStream: #{}
       ;000 0 0000 add remaining bytes (11111111)
       deltaStream: 2#{0000000011111111}
@@ -265,7 +265,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-keepsData-givenUnchanged: func [] [
+   test-makeDeltaReversible-keepsData-givenUnchanged: function [] [
       beforeStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -276,7 +276,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-keepsData-givenUnchangedEmptyBefore: func [] [
+   test-makeDeltaReversible-keepsData-givenUnchangedEmptyBefore: function [] [
       beforeStream: #{}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -287,7 +287,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-makesReversible-givenReplace: func [] [
+   test-makeDeltaReversible-makesReversible-givenReplace: function [] [
       beforeStream: 2#{1100101011111110}
       ;010 1 0001 00000010 replace 2 bytes (11111111 00000000)
       deltaStream: 2#{01010001000000101111111100000000}
@@ -300,7 +300,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-makesReversible-givenRemove: func [] [
+   test-makeDeltaReversible-makesReversible-givenRemove: function [] [
       beforeStream: 2#{11001010}
       ;011 1 0001 00000001 remove 1 byte
       deltaStream: 2#{0111000100000001}
@@ -313,7 +313,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-keepsData-givenReversibleReplace: func [] [
+   test-makeDeltaReversible-keepsData-givenReversibleReplace: function [] [
       beforeStream: 2#{00000000}
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
@@ -325,7 +325,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-makeDeltaReversible-keepsData-givenReversibleRemove: func [] [
+   test-makeDeltaReversible-keepsData-givenReversibleRemove: function [] [
       beforeStream: 2#{00000000}
       ;111 0 0000 reversible remove remaining bytes (00000000)
       deltaStream: 2#{1110000000000000}
@@ -336,7 +336,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-loops-givenMultipleDeltaOps: func [] [
+   test-undoDelta-loops-givenMultipleDeltaOps: function [] [
       afterStream: #{1122}
       ;001 0 0001 unchanged 1 byte. twice
       deltaStream: 2#{0010000100100001}
@@ -347,7 +347,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-validatesAfterStream-givenInvalidAfterStream: func [] [
+   test-undoDelta-validatesAfterStream-givenInvalidAfterStream: function [] [
       afterStream: #{}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
@@ -358,7 +358,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-undoesAdd-givenAdd: func [] [
+   test-undoDelta-undoesAdd-givenAdd: function [] [
       afterStream: 2#{11111111}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
@@ -369,7 +369,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-validatesAdd-givenAdd: func [] [
+   test-undoDelta-validatesAdd-givenAdd: function [] [
       afterStream: 2#{11011011}
       ;000 0 0001 add 1 byte (11111111)
       deltaStream: 2#{0000000111111111}
@@ -380,7 +380,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-undoesUnchanged-givenUnchanged: func [] [
+   test-undoDelta-undoesUnchanged-givenUnchanged: function [] [
       afterStream: #{cafe}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -391,7 +391,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-undoesUnchanged-givenUnchangedEmptyAfter: func [] [
+   test-undoDelta-undoesUnchanged-givenUnchangedEmptyAfter: function [] [
       afterStream: #{}
       ;001 0 0000 remaining unchanged aka done
       deltaStream: 2#{00100000}
@@ -402,7 +402,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-throws-givenReplace: func [] [
+   test-undoDelta-throws-givenReplace: function [] [
       afterStream: 2#{1111111100000000}
       ;010 0 0000 replace remaining bytes (11111111 00000000)
       deltaStream: 2#{010000001111111100000000}
@@ -413,7 +413,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-throws-givenRemove: func [] [
+   test-undoDelta-throws-givenRemove: function [] [
       afterStream: #{}
       ;011 0 0000 remove remaining bytes
       deltaStream: 2#{01100000}
@@ -424,7 +424,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-undoesReplace-givenReversibleReplace: func [] [
+   test-undoDelta-undoesReplace-givenReversibleReplace: function [] [
       afterStream: 2#{11111111}
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
@@ -436,7 +436,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-validatesReplace-givenReversibleReplace: func [] [
+   test-undoDelta-validatesReplace-givenReversibleReplace: function [] [
       afterStream: 2#{11011011}
       ;110 0 0000 reversible replace remaining bytes
       ;old: 00000000, new: 11111111
@@ -448,7 +448,7 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-undoDelta-undoesRemove-givenReversibleRemove: func [] [
+   test-undoDelta-undoesRemove-givenReversibleRemove: function [] [
       afterStream: #{}
       ;111 0 0000 reversible remove remaining bytes (00000000)
       deltaStream: 2#{1110000000000000}

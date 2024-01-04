@@ -9,7 +9,7 @@ context [
    if not exists? tempDir [make-dir tempDir]
    ;it doesn't bother deleting any files (they are git ignored and tests will override them)
 
-   test-applyDelta-writesChange-givenValidStreams: func [] [
+   test-applyDelta-writesChange-givenValidStreams: function [] [
       beforeStreamPath: clean-path append copy tempDir %beforeStream.bin
       write beforeStreamPath "a"
       deltaStreamPath: clean-path append copy tempDir %deltaStream.bin

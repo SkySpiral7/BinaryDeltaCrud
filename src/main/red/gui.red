@@ -3,7 +3,7 @@ Red [
    Needs: 'View
 ]
 gui: context [
-   launch: func [] [
+   launch: function [] [
       view [text "Hello World!"]
    ]
 ]
