@@ -211,7 +211,6 @@ deltaIterator: context [
       WARN: operationType isn't updated}
       newOperation[integer!]
    ] [
-      ;TODO: add /local to all func to prevent leaks
       ;clear out operation bits
       tempOperation: operationBinary/1 and complement mask/operation
       ;set operation bits
