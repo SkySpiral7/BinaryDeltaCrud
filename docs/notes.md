@@ -21,6 +21,7 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 
 
 # learn red
+* red by example: https://www.red-by-example.org/
 * red docs: https://github.com/red/docs/blob/master/en/SUMMARY.adoc
    * vid doc: https://github.com/red/docs/blob/master/en/vid.adoc
 * red github wiki: https://github.com/red/red/wiki
@@ -51,7 +52,4 @@ To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 * is an actual bug (gather with `about/debug`): https://github.com/red/red/issues/5451
 * TODO: can you catch specific errors?
    * there's an error type https://github.com/red/docs/blob/master/en/datatypes/error.adoc
-* TODO: switch to #assert: https://codeberg.org/hiiamboris/red-common/src/branch/master/assert.md
-   * confirm #assert catches each line
-   * confirm #assert allows multi line
-   * test a setup method as well
+* TODO: use git submodules instead of expecting adjacent libs

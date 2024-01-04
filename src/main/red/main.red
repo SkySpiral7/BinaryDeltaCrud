@@ -65,6 +65,7 @@ main: context [
          ;unchanged op size size 4
          deltaStream: append deltaStream 2#{00110100}
          ;TODO: inefficent packing. the other delta func should also compact
+         ;a massage func makes sense to have: it should also shrink op sizes to fit
          deltaStream: append deltaStream to binary! headUnchangedCount
       ]
 
