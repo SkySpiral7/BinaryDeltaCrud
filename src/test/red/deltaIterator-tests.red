@@ -2,6 +2,10 @@ Red [
    Title: "tests for deltaIterator"
 ]
 
+do %../../main/red/buildDelta.red
+do %../../main/red/deltaConstants.red
+;TODO: use the builder for some at least
+
 context [
    setup: function [
       "Initialize/Reload context before each test"

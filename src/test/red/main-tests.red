@@ -2,6 +2,10 @@ Red [
    Title: "tests for main"
 ]
 
+do %../../main/red/buildDelta.red
+do %../../main/red/deltaConstants.red
+;TODO: use the builder
+
 context [
    setup: function [
       "Initialize/Reload context before each test"

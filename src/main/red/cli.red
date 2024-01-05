@@ -2,10 +2,11 @@ Red [
    Title: "Entrance for cli"
 ]
 
-#include %main.red
-#include %gui.red
+do %main.red
+do %gui.red
 print ""  ;to separate from the junk that view prints
 
+;https://codeberg.org/hiiamboris/red-cli might be handy
 ;context prevents variable bleed since I can't use /local outside of func
 context [
    either (empty? system/options/args) or (system/options/args/1 == "gui") [

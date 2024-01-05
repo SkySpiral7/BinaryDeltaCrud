@@ -2,6 +2,10 @@ Red [
    Title: "tests for cli"
 ]
 
+do %../../main/red/buildDelta.red
+do %../../main/red/deltaConstants.red
+
+;for ease of testing: all before/after streams will be text/plain UTF-8
 context [
    tempDir: %../../../scripts/temp/
    cliPath: %../../main/red/cli.red
@@ -13,8 +17,11 @@ context [
       beforeStreamPath: clean-path append copy tempDir %beforeStream.bin
       write beforeStreamPath "a"
       deltaStreamPath: clean-path append copy tempDir %deltaStream.bin
-      ;010 0 0000 replace remaining bytes (b: 01100010)
-      write deltaStreamPath 2#{0100000001100010}
+      write deltaStreamPath buildDelta [
+         operation: deltaConstants/operation/replace
+         operationSize: 0
+         newData: to binary! #"b"
+      ]
       expected: "b"
 
       afterStreamPath: clean-path append copy tempDir %afterStream.bin

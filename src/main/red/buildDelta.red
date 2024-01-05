@@ -2,7 +2,7 @@ Red [
    Title: "Functions that make it easy to manually create deltaStreams"
 ]
 
-#include %deltaConstants.red
+do %deltaConstants.red
 
 buildDelta: function [
    {Creates a new binary with a single operation based on args.
@@ -35,4 +35,3 @@ buildDelta: function [
    if objArgs/newData <> none [append result objArgs/newData]
    return result
 ]
-;TODO: have all other tests use the builder

@@ -2,7 +2,7 @@ Red [
    Title: "run single test file"
 ]
 
-#include %../lib/RedUnit/src/redunit.red
+do %../lib/RedUnit/src/redunit.red
 redunit/run %singleTest.red
 
 ;redunit/run %../src/test/red/buildDelta-tests.red
