@@ -2,7 +2,7 @@ Red [
    Title: "All functionality"
 ]
 
-#include %deltaBuilder.red
+#include %buildDelta.red
 #include %deltaConstants.red
 #include %deltaIterator.red
 
@@ -61,7 +61,7 @@ main: context [
       afterStream: head afterStream
       ;unchanged remaining (empty or not)
       if beforeStream == afterStream [
-         return deltaBuilder/build deltaConstants/operation/unchanged 0
+         return buildDelta[operation: deltaConstants/operation/unchanged operationSize: 0]
       ]
       deltaStream: copy #{}
 
@@ -72,8 +72,8 @@ main: context [
          afterStream: next afterStream
       ]
       if headUnchangedCount > 0 [
-         deltaStream: append deltaStream (
-            deltaBuilder/build deltaConstants/operation/unchanged headUnchangedCount
+         append deltaStream (
+            buildDelta[operation: deltaConstants/operation/unchanged operationSize: headUnchangedCount]
          )
       ]
 
@@ -92,33 +92,33 @@ main: context [
       if (not tail? beforeStream) and (not tail? afterStream) [
          ;replace as much as possible. will be the rest of at least 1 stream
          replaceLength: min (length? beforeStream) (length? afterStream)
-         deltaStream: append deltaStream (
-            deltaBuilder/build deltaConstants/operation/replace replaceLength
+         append deltaStream (
+            buildDelta[operation: deltaConstants/operation/replace operationSize: replaceLength]
          )
-         deltaStream: append deltaStream copy/part afterStream replaceLength
+         append deltaStream copy/part afterStream replaceLength
          beforeStream: skip beforeStream replaceLength
          afterStream: skip afterStream replaceLength
       ]
 
       if (tail? beforeStream) and (tail? afterStream) [
          ;unchanged remaining (done)
-         deltaStream: append deltaStream (
-            deltaBuilder/build deltaConstants/operation/unchanged 0
+         append deltaStream (
+            buildDelta[operation: deltaConstants/operation/unchanged operationSize: 0]
          )
          return deltaStream
       ]
       if tail? beforeStream [
          ;add remaining
-         deltaStream: append deltaStream (
-            deltaBuilder/build deltaConstants/operation/add 0
+         append deltaStream (
+            buildDelta[operation: deltaConstants/operation/add operationSize: 0]
          )
-         deltaStream: append deltaStream afterStream
+         append deltaStream afterStream
          return deltaStream
       ]
       if not tail? afterStream [throw "Bug in generateDelta: afterStream should be at tail at bottom"]
       ;remove remaining
-      deltaStream: append deltaStream (
-         deltaBuilder/build deltaConstants/operation/remove 0
+      append deltaStream (
+         buildDelta[operation: deltaConstants/operation/remove operationSize: 0]
       )
       return deltaStream
    ]

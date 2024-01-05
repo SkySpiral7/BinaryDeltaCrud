@@ -31,8 +31,8 @@ deltaIterator: context [
    operationBinary: none  ;type? binary!
    operationType: none  ;type? integer!
    operationSize: none  ;type? integer!
-   oldData: none  ;type? binary!
-   newData: none  ;type? binary!
+   oldData: none  ;type? [none! binary!]
+   newData: none  ;type? [none! binary!]
    ;endregion: derived state
 
    hasNext?: function [
