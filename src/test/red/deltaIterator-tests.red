@@ -59,7 +59,7 @@ context [
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals originalDeltaStream deltaItr/operationBinary
-      redunit/assert-equals deltaItr/operation/unchanged deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
@@ -70,7 +70,7 @@ context [
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals originalDeltaStream deltaItr/operationBinary
-      redunit/assert-equals deltaItr/operation/unchanged deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
@@ -81,7 +81,7 @@ context [
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals originalDeltaStream deltaItr/operationBinary
-      redunit/assert-equals deltaItr/operation/unchanged deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
@@ -109,7 +109,7 @@ context [
       ;000 0 0000 add remaining bytes (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0000000011111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/add deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/add deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
@@ -118,7 +118,7 @@ context [
       ;000 0 0001 add 1 byte (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0000000111111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/add deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/add deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
@@ -137,7 +137,7 @@ context [
       ;001 0 0000 remaining unchanged aka done
       deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/unchanged deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 0 deltaItr/operationSize
    ]
 
@@ -145,7 +145,7 @@ context [
       ;001 0 0001 unchanged 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/unchanged deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
@@ -173,7 +173,7 @@ context [
       ;010 0 0000 replace remaining (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0100000011111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/replace deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/replace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
@@ -182,7 +182,7 @@ context [
       ;010 0 0001 replace 1 byte (11111111)
       deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/replace deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/replace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{11111111} deltaItr/newData
    ]
@@ -201,7 +201,7 @@ context [
       ;011 0 0000 remove remaining bytes
       deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/remove deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/remove deltaItr/operationType
       redunit/assert-equals 0 deltaItr/operationSize
    ]
 
@@ -209,7 +209,7 @@ context [
       ;011 0 0001 remove 1 byte
       deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/remove deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/remove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
@@ -250,7 +250,7 @@ context [
       ;old: 00000000 new: 11111111
       deltaItr: make deltaIterator [deltaStream: 2#{110000000000000011111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/reversibleReplace deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/reversibleReplace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{00000000} deltaItr/oldData
       redunit/assert-equals 2#{11111111} deltaItr/newData
@@ -261,7 +261,7 @@ context [
       ;old: 00000000 new: 11111111
       deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/reversibleReplace deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/reversibleReplace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{00000000} deltaItr/oldData
       redunit/assert-equals 2#{11111111} deltaItr/newData
@@ -292,7 +292,7 @@ context [
       ;old: 00000000
       deltaItr: make deltaIterator [deltaStream: 2#{1110000000000000}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/reversibleRemove deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/reversibleRemove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{00000000} deltaItr/oldData
    ]
@@ -302,7 +302,7 @@ context [
       ;old: 00000000
       deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
       redunit/assert-equals none catch [deltaItr/parseNext none]
-      redunit/assert-equals deltaItr/operation/reversibleRemove deltaItr/operationType
+      redunit/assert-equals deltaConstants/operation/reversibleRemove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
       redunit/assert-equals 2#{00000000} deltaItr/oldData
    ]

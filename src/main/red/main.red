@@ -25,25 +25,25 @@ main: context [
       while [deltaItr/hasNext?] [
          deltaItr/parseNext beforeStream
          switch deltaItr/operationType reduce [
-            deltaItr/operation/add [
+            deltaConstants/operation/add [
                append afterStream deltaItr/newData
             ]
-            deltaItr/operation/unchanged [
+            deltaConstants/operation/unchanged [
                append afterStream copy/part beforeStream deltaItr/operationSize
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/replace [
+            deltaConstants/operation/replace [
                append afterStream deltaItr/newData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/remove [
+            deltaConstants/operation/remove [
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/reversibleReplace [
+            deltaConstants/operation/reversibleReplace [
                append afterStream deltaItr/newData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/reversibleRemove [
+            deltaConstants/operation/reversibleRemove [
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
          ]
@@ -152,25 +152,25 @@ main: context [
       while [deltaItr/hasNext?] [
          deltaItr/parseNext none
          switch deltaItr/operationType reduce [
-            deltaItr/operation/add [
+            deltaConstants/operation/add [
                append nonReversibleDeltaStream deltaItr/operationAndData
             ]
-            deltaItr/operation/unchanged [
+            deltaConstants/operation/unchanged [
                append nonReversibleDeltaStream deltaItr/operationBinary
             ]
-            deltaItr/operation/replace [
+            deltaConstants/operation/replace [
                append nonReversibleDeltaStream deltaItr/operationAndData
             ]
-            deltaItr/operation/remove [
+            deltaConstants/operation/remove [
                append nonReversibleDeltaStream deltaItr/operationBinary
             ]
-            deltaItr/operation/reversibleReplace [
+            deltaConstants/operation/reversibleReplace [
                deltaItr/clearReversibleFlag
                append nonReversibleDeltaStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
                append nonReversibleDeltaStream deltaItr/newData
             ]
-            deltaItr/operation/reversibleRemove [
+            deltaConstants/operation/reversibleRemove [
                deltaItr/clearReversibleFlag
                append nonReversibleDeltaStream deltaItr/operationBinary
                ;ignore deltaItr/oldData
@@ -191,14 +191,14 @@ main: context [
       while [deltaItr/hasNext?] [
          deltaItr/parseNext beforeStream
          switch deltaItr/operationType reduce [
-            deltaItr/operation/add [
+            deltaConstants/operation/add [
                append reversibleDeltaStream deltaItr/operationAndData
             ]
-            deltaItr/operation/unchanged [
+            deltaConstants/operation/unchanged [
                append reversibleDeltaStream deltaItr/operationBinary
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/replace [
+            deltaConstants/operation/replace [
                deltaItr/setReversibleFlag
                append reversibleDeltaStream deltaItr/operationBinary
                ;oldData
@@ -206,18 +206,18 @@ main: context [
                append reversibleDeltaStream deltaItr/newData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/remove [
+            deltaConstants/operation/remove [
                deltaItr/setReversibleFlag
                append reversibleDeltaStream deltaItr/operationBinary
                ;oldData
                append reversibleDeltaStream copy/part beforeStream deltaItr/operationSize
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/reversibleReplace [
+            deltaConstants/operation/reversibleReplace [
                append reversibleDeltaStream deltaItr/operationAndData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
-            deltaItr/operation/reversibleRemove [
+            deltaConstants/operation/reversibleRemove [
                append reversibleDeltaStream deltaItr/operationAndData
                beforeStream: skip beforeStream deltaItr/operationSize
             ]
@@ -237,28 +237,28 @@ main: context [
       while [deltaItr/hasNext?] [
          deltaItr/parseNext none  ;don't run normal validation yet since we have an afterStream instead of a beforeStream
          switch deltaItr/operationType reduce [
-            deltaItr/operation/add [
-               deltaItr/setOperation deltaItr/operation/reversibleRemove
+            deltaConstants/operation/add [
+               deltaItr/setOperation deltaConstants/operation/reversibleRemove
                append undoDeltaStream deltaItr/operationBinary
                append undoDeltaStream deltaItr/newData
             ]
-            deltaItr/operation/unchanged [
+            deltaConstants/operation/unchanged [
                append undoDeltaStream deltaItr/operationBinary
             ]
-            deltaItr/operation/replace [
+            deltaConstants/operation/replace [
                throw "Invalid: deltaStream isn't reversible"
             ]
-            deltaItr/operation/remove [
+            deltaConstants/operation/remove [
                throw "Invalid: deltaStream isn't reversible"
             ]
-            deltaItr/operation/reversibleReplace [
+            deltaConstants/operation/reversibleReplace [
                ;don't need to edit operationBinary. just flip the data order
                append undoDeltaStream deltaItr/operationBinary
                append undoDeltaStream deltaItr/newData
                append undoDeltaStream deltaItr/oldData
             ]
-            deltaItr/operation/reversibleRemove [
-               deltaItr/setOperation deltaItr/operation/add
+            deltaConstants/operation/reversibleRemove [
+               deltaItr/setOperation deltaConstants/operation/add
                append undoDeltaStream deltaItr/operationBinary
                append undoDeltaStream deltaItr/oldData
             ]
