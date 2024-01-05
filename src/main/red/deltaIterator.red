@@ -2,6 +2,8 @@ Red [
    Title: "Iterator design pattern for the deltaStream"
 ]
 
+;TODO: use deltaConstants
+
 deltaIterator: context [
    ;region: constants
    mask: context [
@@ -197,6 +199,8 @@ deltaIterator: context [
       WARN: unvalidated and no other variables are updated}
    ] [
       operationBinary/1: operationBinary/1 or mask/reversibleFlag
+      ;TODO: update other vars:
+      ;binary, type, add oldData
       exit
    ]
 

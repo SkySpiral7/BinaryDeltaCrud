@@ -2,8 +2,17 @@ Red [
    Title: "All functionality"
 ]
 
+#include %deltaBuilder.red
+#include %deltaConstants.red
 #include %deltaIterator.red
 
+comment {
+   split this file into:
+   deltaApplier: applyDelta, undoDelta
+   deltaGenerator: generateDelta (assuming that it will grow)
+   deltaManipulator: makeDeltaNonReversible, makeDeltaReversible, (massage)
+   this seems like smurf naming but I don't want to call a file "iterator"
+}
 main: context [
    applyDelta: function [
       {Modify the beforeStream according to the deltaStream and return the afterStream.
@@ -50,9 +59,10 @@ main: context [
    ] [
       beforeStream: head beforeStream
       afterStream: head afterStream
-      ;unchanged remaining (empty or not). defensive copy
-      ;TODO: use constants
-      if beforeStream == afterStream [return copy 2#{00100000}]
+      ;unchanged remaining (empty or not)
+      if beforeStream == afterStream [
+         return deltaBuilder/build deltaConstants/operation/unchanged 0
+      ]
       deltaStream: copy #{}
 
       headUnchangedCount: 0
@@ -62,11 +72,9 @@ main: context [
          afterStream: next afterStream
       ]
       if headUnchangedCount > 0 [
-         ;unchanged op size size 4
-         deltaStream: append deltaStream 2#{00110100}
-         ;TODO: inefficent packing. the other delta function should also compact
-         ;a massage function makes sense to have: it should also shrink op sizes to fit
-         deltaStream: append deltaStream to binary! headUnchangedCount
+         deltaStream: append deltaStream (
+            deltaBuilder/build deltaConstants/operation/unchanged headUnchangedCount
+         )
       ]
 
       ;TODO: to avoid overlap with headUnchangedCount I'd have to copy what remains
@@ -82,11 +90,11 @@ main: context [
       }
 
       if (not tail? beforeStream) and (not tail? afterStream) [
-         ;replace op size size 4
-         deltaStream: append deltaStream 2#{01010100}
          ;replace as much as possible. will be the rest of at least 1 stream
          replaceLength: min (length? beforeStream) (length? afterStream)
-         deltaStream: append deltaStream to binary! replaceLength
+         deltaStream: append deltaStream (
+            deltaBuilder/build deltaConstants/operation/replace replaceLength
+         )
          deltaStream: append deltaStream copy/part afterStream replaceLength
          beforeStream: skip beforeStream replaceLength
          afterStream: skip afterStream replaceLength
@@ -94,18 +102,24 @@ main: context [
 
       if (tail? beforeStream) and (tail? afterStream) [
          ;unchanged remaining (done)
-         deltaStream: append deltaStream 2#{00100000}
+         deltaStream: append deltaStream (
+            deltaBuilder/build deltaConstants/operation/unchanged 0
+         )
          return deltaStream
       ]
       if tail? beforeStream [
          ;add remaining
-         deltaStream: append deltaStream 2#{00000000}
+         deltaStream: append deltaStream (
+            deltaBuilder/build deltaConstants/operation/add 0
+         )
          deltaStream: append deltaStream afterStream
          return deltaStream
       ]
       if not tail? afterStream [throw "Bug in generateDelta: afterStream should be at tail at bottom"]
       ;remove remaining
-      deltaStream: append deltaStream 2#{01100000}
+      deltaStream: append deltaStream (
+         deltaBuilder/build deltaConstants/operation/remove 0
+      )
       return deltaStream
    ]
    makeDeltaNonReversible: function [
