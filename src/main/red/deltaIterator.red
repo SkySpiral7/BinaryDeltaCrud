@@ -51,22 +51,22 @@ deltaIterator: context [
 
       switch/default operationType reduce [
          deltaConstants/operation/add [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                operationSize: length? deltaStream
-               if operationSize == 0 [throw "Invalid: Add operation must add bytes"]
+               if operationSize == deltaConstants/remainingBytes [throw "Invalid: Add operation must add bytes"]
             ]
             [if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]]
             newData: copy/part deltaStream operationSize
             deltaStream: skip deltaStream operationSize
          ]
          deltaConstants/operation/unchanged [
-            if (operationSize == 0) and not tail? deltaStream
+            if (operationSize == deltaConstants/remainingBytes) and not tail? deltaStream
                [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
          ]
          deltaConstants/operation/replace [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                operationSize: length? deltaStream
-               if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
+               if operationSize == deltaConstants/remainingBytes [throw "Invalid: Replace operation must replace bytes"]
             ] [
                if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
             ]
@@ -74,14 +74,14 @@ deltaIterator: context [
             deltaStream: skip deltaStream operationSize
          ]
          deltaConstants/operation/remove [
-            if (operationSize == 0) and not tail? deltaStream
+            if (operationSize == deltaConstants/remainingBytes) and not tail? deltaStream
                [throw "Invalid: Unaccounted for bytes remaining in deltaStream"]
          ]
          deltaConstants/operation/reversibleReplace [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                if odd? length? deltaStream [throw "Invalid: deltaStream must have an even number of bytes"]
                operationSize: (length? deltaStream) / 2
-               if operationSize == 0 [throw "Invalid: Replace operation must replace bytes"]
+               if operationSize == deltaConstants/remainingBytes [throw "Invalid: Replace operation must replace bytes"]
             ] [
                if (operationSize * 2) > length? deltaStream
                   [throw "Invalid: Not enough bytes remaining in deltaStream"]
@@ -92,9 +92,9 @@ deltaIterator: context [
             deltaStream: skip deltaStream operationSize
          ]
          deltaConstants/operation/reversibleRemove [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                operationSize: length? deltaStream
-               if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
+               if operationSize == deltaConstants/remainingBytes [throw "Invalid: Remove operation must remove bytes"]
             ] [
                if operationSize > length? deltaStream [throw "Invalid: Not enough bytes remaining in deltaStream"]
             ]
@@ -119,7 +119,7 @@ deltaIterator: context [
             ;do nothing (always valid)
          ]
          deltaConstants/operation/unchanged [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                operationSize: length? beforeStream
                ;op size 0 but empty beforeStream is allowed
             ] [
@@ -134,9 +134,9 @@ deltaIterator: context [
             beforeStream: skip beforeStream operationSize
          ]
          deltaConstants/operation/remove [
-            either operationSize == 0 [
+            either operationSize == deltaConstants/remainingBytes [
                operationSize: length? beforeStream
-               if operationSize == 0 [throw "Invalid: Remove operation must remove bytes"]
+               if operationSize == deltaConstants/remainingBytes [throw "Invalid: Remove operation must remove bytes"]
             ] [
                if operationSize > length? beforeStream
                   [throw "Invalid: Not enough bytes remaining in beforeStream"]

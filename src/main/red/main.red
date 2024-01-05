@@ -63,7 +63,7 @@ main: context [
       if beforeStream == afterStream [
          return buildDelta [
             operation: deltaConstants/operation/unchanged
-            operationSize: 0
+            operationSize: deltaConstants/remainingBytes
          ]
       ]
       deltaStream: copy #{}
@@ -114,7 +114,7 @@ main: context [
          append deltaStream (
             buildDelta [
                operation: deltaConstants/operation/unchanged
-               operationSize: 0
+               operationSize: deltaConstants/remainingBytes
             ]
          )
          return deltaStream
@@ -124,7 +124,7 @@ main: context [
          append deltaStream (
             buildDelta [
                operation: deltaConstants/operation/add
-               operationSize: 0
+               operationSize: deltaConstants/remainingBytes
             ]
          )
          append deltaStream afterStream
@@ -135,7 +135,7 @@ main: context [
       append deltaStream (
          buildDelta [
             operation: deltaConstants/operation/remove
-            operationSize: 0
+            operationSize: deltaConstants/remainingBytes
          ]
       )
       return deltaStream

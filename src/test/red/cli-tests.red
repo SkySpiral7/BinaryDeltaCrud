@@ -19,7 +19,7 @@ context [
       deltaStreamPath: clean-path append copy tempDir %deltaStream.bin
       write deltaStreamPath buildDelta [
          operation: deltaConstants/operation/replace
-         operationSize: 0
+         operationSize: deltaConstants/remainingBytes
          newData: to binary! #"b"
       ]
       expected: "b"

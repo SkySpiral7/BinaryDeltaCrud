@@ -19,5 +19,6 @@ deltaConstants: context [
       reversibleReplace: to integer! 2#{11000000}
       reversibleRemove: to integer! 2#{11100000}
    ]
-   ;TODO: make constant for infiniteSize
+   ;this operation size is infinite which means all bytes (if any) that remain in the stream
+   remainingBytes: 0
 ]
