@@ -16,6 +16,8 @@ deltaConstants: context [
       unchanged: to integer! 2#{00100000}
       replace: to integer! 2#{01000000}
       remove: to integer! 2#{01100000}
+      invalid4: to integer! 2#{10000000}
+      invalid5: to integer! 2#{10100000}
       reversibleReplace: to integer! 2#{11000000}
       reversibleRemove: to integer! 2#{11100000}
    ]

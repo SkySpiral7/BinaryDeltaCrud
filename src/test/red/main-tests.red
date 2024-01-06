@@ -14,10 +14,17 @@ context [
    ]
 
    test-applyDelta-loops-givenMultipleDeltaOps: function [] [
-      beforeStream: #{1122}
-      ;001 0 0001 unchanged 1 byte. twice
-      deltaStream: 2#{0010000100100001}
-      expected: #{1122}
+      beforeStream: to binary! "ab"
+      deltaStream: copy #{}
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/unchanged
+            operationSize: 1
+         ]
+      )
+      ;same op twice
+      append deltaStream deltaStream
+      expected: to binary! "ab"
 
       actual: catch [main/applyDelta beforeStream deltaStream]
 
@@ -26,8 +33,12 @@ context [
 
    test-applyDelta-validatesBeforeStream-givenInvalidBeforeStream: function [] [
       beforeStream: #{}
-      ;011 0 0001 remove 1 byte
-      deltaStream: 2#{01100001}
+      deltaStream: append copy #{} (
+         buildDelta [
+            operation: deltaConstants/operation/remove
+            operationSize: 1
+         ]
+      )
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       actual: catch [main/applyDelta beforeStream deltaStream]
@@ -37,9 +48,14 @@ context [
 
    test-applyDelta-doesAdd-givenAdd: function [] [
       beforeStream: #{}
-      ;000 0 0001 add 1 byte (11111111)
-      deltaStream: 2#{0000000111111111}
-      expected: 2#{11111111}
+      deltaStream: append copy #{} (
+         buildDelta [
+            operation: deltaConstants/operation/add
+            operationSize: 1
+            newData: to binary! #"a"
+         ]
+      )
+      expected: to binary! #"a"
 
       actual: catch [main/applyDelta beforeStream deltaStream]
 

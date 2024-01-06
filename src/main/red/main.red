@@ -7,8 +7,8 @@ do %deltaConstants.red
 do %deltaIterator.red
 
 comment {
-   split this file into:
-   deltaApplier: applyDelta, undoDelta
+   TODO: split this file into:
+   deltaApplier: applyDelta, (validateDelta), undoDelta
    deltaGenerator: generateDelta (assuming that it will grow)
    deltaManipulator: makeDeltaNonReversible, makeDeltaReversible, (massage)
    this seems like smurf naming but I don't want to call a file "iterator"

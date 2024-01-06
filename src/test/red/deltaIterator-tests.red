@@ -13,9 +13,21 @@ context [
       do %../../main/red/deltaIterator.red
    ]
 
+   makeSingle: function [
+      blockArgs[block!]
+   ] [
+      return make deltaIterator [
+         deltaStream: append copy #{} (
+            buildDelta blockArgs
+         )
+      ]
+   ]
+
    test-hasNext?: function [] [
-      ;001 0 0000 remaining unchanged aka done
-      deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 1
+      ]
 
       redunit/assert-equals true deltaItr/hasNext?
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -23,6 +35,7 @@ context [
    ]
 
    test-parseNext-throws-givenOpSizeSize0: function [] [
+      ;can't use builder to make this invalid state
       ;001 1 0000 unchanged 0 bytes op size size
       deltaItr: make deltaIterator [deltaStream: 2#{00110000}]
       expected: "Invalid: op size size can't be 0"
@@ -33,6 +46,7 @@ context [
    ]
 
    test-parseNext-throws-givenOpSizeSizeTooLarge: function [] [
+      ;can't use builder since integer arg is larger than max int
       ;001 1 1000 unchanged 8 bytes op size size
       deltaItr: make deltaIterator [deltaStream: 2#{00111000}]
       expected: "Limitation: op size size is limited to signed 4 bytes"
@@ -43,6 +57,7 @@ context [
    ]
 
    test-parseNext-throws-givenOpSizeSizeTooLargeSigned: function [] [
+      ;can't use builder since integer arg is larger than max int
       ;001 1 0100 10000000 00000000 00000000 00000000 unchanged 4 bytes op size size which has an op size of 2147483648
       deltaItr: make deltaIterator [deltaStream: 2#{0011010010000000000000000000000000000000}]
       expected: "Limitation: op size size is limited to signed 4 bytes"
@@ -106,21 +121,29 @@ context [
    ]
 
    test-parseNext-parses-givenAddOp0: function [] [
-      ;000 0 0000 add remaining bytes (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0000000011111111}]
+      expectedNewData: to binary! "abc"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/add
+         operationSize: deltaConstants/remainingBytes
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/add deltaItr/operationType
-      redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals 3 deltaItr/operationSize
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-parses-givenAddOp1: function [] [
-      ;000 0 0001 add 1 byte (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0000000111111111}]
+      expectedNewData: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/add deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-throws-givenUnchangeOp0ExtraDelta: function [] [
@@ -308,7 +331,10 @@ context [
    ]
 
    test-parseNext-throws-whenOp4: function [] [
-      deltaItr: make deltaIterator [deltaStream: 2#{10000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/invalid4
+         operationSize: 1
+      ]
       expected: "Invalid: operations 4-5 don't exist"
 
       actual: catch [deltaItr/parseNext none]
@@ -317,7 +343,10 @@ context [
    ]
 
    test-parseNext-throws-whenOp5: function [] [
-      deltaItr: make deltaIterator [deltaStream: 2#{10100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/invalid5
+         operationSize: 1
+      ]
       expected: "Invalid: operations 4-5 don't exist"
 
       actual: catch [deltaItr/parseNext none]
