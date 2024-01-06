@@ -18,6 +18,7 @@ deltaIterator: context [
 
    hasNext?: function [
       "@returns true if there is another delta opperation to parse"
+      return: [logic!]
    ] [
       return not tail? deltaStream
    ]
@@ -167,6 +168,7 @@ deltaIterator: context [
 
    operationAndData: func [
       "@returns the entire binary for delta's current position"
+      return: [binary!]
       /local result
    ] [
       result: copy operationBinary

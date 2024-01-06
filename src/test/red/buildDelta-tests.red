@@ -12,12 +12,12 @@ context [
    ]
 
    test-buildDelta-handlesSize-givenSize0: function [] [
-      ;reversibleRemove, operationSizeFlag, op size size of 15
-      ;everything except reversibleRemove will be ignored
-      operationParam: to integer! 2#{11111111}
+      ;unchanged, operationSizeFlag, op size size of 15
+      ;everything except unchanged will be ignored
+      operationParam: to integer! 2#{00111111}
       operationSizeParam: 0
-      ;111 0 0000 reversibleRemove remaining
-      expected: 2#{11100000}
+      ;001 0 0000 unchanged remaining
+      expected: 2#{00100000}
 
       actual: catch [buildDelta[operation: operationParam operationSize: operationSizeParam]]
 
@@ -25,12 +25,24 @@ context [
    ]
 
    test-buildDelta-handlesSize-givenSize5: function [] [
-      ;add
-      operationParam: to integer! 2#{00000000}
+      ;unchanged
+      operationParam: to integer! 2#{00100000}
       operationSizeParam: 5
-      ;000 1 0100 add op size size 4
-      ;op size 5: 00000000 00000000 00000000 00000101
-      expected: 2#{0001010000000000000000000000000000000101}
+      ;001 0 0101 unchanged op size 5
+      expected: 2#{00100101}
+
+      actual: catch [buildDelta[operation: operationParam operationSize: operationSizeParam]]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-buildDelta-handlesSize-givenSize300: function [] [
+      ;unchanged
+      operationParam: to integer! 2#{00100000}
+      operationSizeParam: 300
+      ;001 1 0010 unchanged op size size 2
+      ;op size 300: 00000001 00101100
+      expected: 2#{001100100000000100101100}
 
       actual: catch [buildDelta[operation: operationParam operationSize: operationSizeParam]]
 

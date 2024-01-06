@@ -6,8 +6,10 @@ do %deltaConstants.red
 
 buildDelta: function [
    {Creates a new binary with a single operation based on args.
+   @returns deltaStream
    WARN: unvalidated so that tests can create binary to test other validation}
    blockArgs[block!]
+   return: [binary!]
 ] [
    template: context [
       operation: none  ;type? integer!
@@ -21,15 +23,17 @@ buildDelta: function [
    ;clear out bits that aren't the op
    append result (objArgs/operation and deltaConstants/mask/operation)
 
-   ;size 0 already has correct bits
-   if objArgs/operationSize <> deltaConstants/remainingBytes [
-      ;TODO: inefficent packing. the other delta functions should also compact
-      ;a massage function makes sense to have: it should also shrink op sizes to fit
-
-      ;set op size flag and op size size to 4
+   ;remainingBytes is 0 so it fits here
+   either objArgs/operationSize <= 15 [
+      result/1: result/1 or objArgs/operationSize
+   ] [
+      ;set op size flag
       result/1: result/1 or deltaConstants/mask/operationSizeFlag
-      result/1: result/1 or 4
-      append result to binary! objArgs/operationSize
+      operationSizeBinary: to binary! objArgs/operationSize
+      ;exclude leading 0s
+      while [operationSizeBinary/1 == 0] [operationSizeBinary: next operationSizeBinary]
+      result/1: result/1 or length? operationSizeBinary
+      append result operationSizeBinary
    ]
    if objArgs/oldData <> none [append result objArgs/oldData]
    if objArgs/newData <> none [append result objArgs/newData]

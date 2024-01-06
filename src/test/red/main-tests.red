@@ -33,12 +33,10 @@ context [
 
    test-applyDelta-validatesBeforeStream-givenInvalidBeforeStream: function [] [
       beforeStream: #{}
-      deltaStream: append copy #{} (
-         buildDelta [
-            operation: deltaConstants/operation/remove
-            operationSize: 1
-         ]
-      )
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/remove
+         operationSize: 1
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       actual: catch [main/applyDelta beforeStream deltaStream]
@@ -48,13 +46,11 @@ context [
 
    test-applyDelta-doesAdd-givenAdd: function [] [
       beforeStream: #{}
-      deltaStream: append copy #{} (
-         buildDelta [
-            operation: deltaConstants/operation/add
-            operationSize: 1
-            newData: to binary! #"a"
-         ]
-      )
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+         newData: to binary! #"a"
+      ]
       expected: to binary! #"a"
 
       actual: catch [main/applyDelta beforeStream deltaStream]
@@ -130,10 +126,12 @@ context [
    ]
 
    test-generateDelta-returnsUnchangedAll-givenSameStreams: function [] [
-      beforeStream: #{cafebabe}
+      beforeStream: to binary! "same"
       afterStream: copy beforeStream
-      ;001 0 0000 remaining unchanged aka done
-      expected: 2#{00100000}
+      expected: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
 
       actual: catch [main/generateDelta beforeStream afterStream]
 
@@ -141,12 +139,21 @@ context [
    ]
 
    test-generateDelta-returnsUnchangedHeaderThenRemove-givenSameStartThenShort: function [] [
-      beforeStream: #{cafebabe}
-      afterStream: #{cafe}
-      ;001 1 0100 unchanged op size size 4
-      ;op: 00000000 00000000 00000000 00000010 = op size 2
-      ;011 0 0000 remove remaining bytes
-      expected: 2#{001101000000000000000000000000000000001001100000}
+      beforeStream: to binary! "hill"
+      afterStream: to binary! "hi"
+      expected: copy #{}
+      append expected (
+         buildDelta [
+            operation: deltaConstants/operation/unchanged
+            operationSize: 2
+         ]
+      )
+      append expected (
+         buildDelta [
+            operation: deltaConstants/operation/remove
+            operationSize: deltaConstants/remainingBytes
+         ]
+      )
 
       actual: catch [main/generateDelta beforeStream afterStream]
 
@@ -155,9 +162,12 @@ context [
 
    test-generateDelta-returnsAdd-givenShort: function [] [
       beforeStream: #{}
-      afterStream: #{babe}
-      ;000 0 0000 add remaining bytes (ba: 10111010 be: 10111110)
-      expected: 2#{000000001011101010111110}
+      afterStream: to binary! "hi"
+      expected: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: deltaConstants/remainingBytes
+         newData: copy afterStream
+      ]
 
       actual: catch [main/generateDelta beforeStream afterStream]
 
@@ -165,13 +175,22 @@ context [
    ]
 
    test-generateDelta-returnsReplaceThenDone-givenOnlyDiff: function [] [
-      beforeStream: #{cafe}
-      afterStream: #{babe}
-      ;010 1 0100 replace op size size 4
-      ;op: 00000000 00000000 00000000 00000010 = op size 2
-      ;new data: ba: 10111010 be: 10111110
-      ;001 0 0000 remaining unchanged (done)
-      expected: 2#{0101010000000000000000000000000000000010101110101011111000100000}
+      beforeStream: to binary! "aa"
+      afterStream: to binary! "bb"
+      expected: copy #{}
+      append expected (
+         buildDelta [
+            operation: deltaConstants/operation/replace
+            operationSize: 2
+            newData: to binary! "bb"
+         ]
+      )
+      append expected (
+         buildDelta [
+            operation: deltaConstants/operation/unchanged
+            operationSize: deltaConstants/remainingBytes
+         ]
+      )
 
       actual: catch [main/generateDelta beforeStream afterStream]
 

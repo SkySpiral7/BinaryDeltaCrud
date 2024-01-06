@@ -8,9 +8,10 @@ do %deltaIterator.red
 
 comment {
    TODO: split this file into:
-   deltaApplier: applyDelta, (validateDelta), undoDelta
+   deltaApplier: applyDelta, undoDelta
    deltaGenerator: generateDelta (assuming that it will grow)
-   deltaManipulator: makeDeltaNonReversible, makeDeltaReversible, (massage)
+   deltaManipulator: makeDeltaNonReversible, makeDeltaReversible, (massage (takes all and validates))
+      massage shrinks op sizes to fit and shrinks redundantly large op sizes
    this seems like smurf naming but I don't want to call a file "iterator"
 }
 main: context [
@@ -19,6 +20,7 @@ main: context [
       @param beforeStream isn't mutated instead see return value
       @returns afterStream}
       beforeStream[binary!] deltaStreamParam[binary!]
+      return: [binary!]
    ] [
       afterStream: copy #{}
       deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
@@ -56,6 +58,7 @@ main: context [
       @param all of both streams will be looked at. They are expected to start at head
       @returns deltaStream}
       beforeStream[binary!] afterStream[binary!]
+      return: [binary!]
    ] [
       beforeStream: head beforeStream
       afterStream: head afterStream
@@ -146,6 +149,7 @@ main: context [
       @param deltaStreamParam isn't mutated instead see return value
       @returns the new deltaStream}
       deltaStreamParam[binary!]
+      return: [binary!]
    ] [
       nonReversibleDeltaStream: copy #{}
       deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
@@ -185,6 +189,7 @@ main: context [
       @param deltaStreamParam isn't mutated instead see return value
       @returns the new deltaStream}
       beforeStream[binary!] deltaStreamParam[binary!]
+      return: [binary!]
    ] [
       reversibleDeltaStream: copy #{}
       deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
@@ -231,6 +236,7 @@ main: context [
       @param afterStream isn't mutated instead see return value
       @returns beforeStream}
       afterStream[binary!] deltaStreamParam[binary!]
+      return: [binary!]
    ] [
       undoDeltaStream: copy #{}
       deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
