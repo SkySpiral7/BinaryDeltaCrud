@@ -5,8 +5,6 @@ Red [
 do %deltaConstants.red
 do %deltaIterator.red
 
-;TODO: make massage: shrinks redundantly large op sizes, validate, remove trailing done
-;can't split split large ops since red's binary! has max size
 deltaManipulator: context [
    makeDeltaNonReversible: function [
       {Modify a deltaStream so that the deltaStream it is no longer reversible (and thus more compact).
@@ -94,5 +92,17 @@ deltaManipulator: context [
          ]
       ]
       return reversibleDeltaStream
+   ]
+   massageDelta: function [
+      {Modify a deltaStream to remove redundant info.
+      This shrinks redundantly large op sizes and removes trailing "done".
+      This doesn't split large ops since red's binary! has max size anyway.
+      @param deltaStreamParam isn't mutated instead see return value
+      @returns the new deltaStream}
+      deltaStreamParam[binary!]
+      return: [binary!]
+   ] [
+      ;TODO: make massage
+      throw "Not yet implemented: massageDelta"
    ]
 ]

@@ -3,6 +3,7 @@ Red [
 ]
 
 do %buildDelta.red
+do %deltaApplier.red
 do %deltaConstants.red
 
 deltaGenerator: context [
@@ -16,13 +17,15 @@ deltaGenerator: context [
    ] [
       beforeStream: head beforeStream
       afterStream: head afterStream
-      ;unchanged remaining (empty or not)
+      ;if they are the same then don't analyze them
       if beforeStream == afterStream [
          return buildDelta [
             operation: deltaConstants/operation/unchanged
             operationSize: deltaConstants/remainingBytes
          ]
       ]
+      originalBeforeStream: copy beforeStream
+      originalAfterStream: copy afterStream
       deltaStream: copy #{}
 
       headUnchangedCount: 0
@@ -40,17 +43,27 @@ deltaGenerator: context [
          )
       ]
 
-      ;TODO: to avoid overlap with headUnchangedCount I'd have to copy what remains
-      comment {
       tailUnchangedCount: 0
-      beforeStream: last beforeStream
-      afterStream: last afterStream
-      while [(not tail? beforeStream) and (not tail? afterStream) and (beforeStream/1 == afterStream/1)] [
-         headUnchangedCount: headUnchangedCount + 1
-         beforeStream: next beforeStream
-         afterStream: next afterStream
+      ;copy only keeps the current position onward. this prevents overlapping with headUnchangedCount
+      ;back tail will put the cursor on the last element
+      beforeStream: back tail copy beforeStream
+      afterStream: back tail copy afterStream
+      ;they can't both reach head since I know there's at least 1 byte different between them
+      while [(not head? beforeStream) and (not head? afterStream) and (beforeStream/1 == afterStream/1)] [
+         tailUnchangedCount: tailUnchangedCount + 1
+         beforeStream: back beforeStream
+         afterStream: back afterStream
       ]
-      }
+      ;resets them back to where headUnchangedCount ended
+      beforeStream: head beforeStream
+      afterStream: head afterStream
+      if tailUnchangedCount > 0 [
+         ;remove the unchanged bytes from the end of them
+         ;TODO: make sure no bug with them becoming empty
+         beforeStream: copy/part beforeStream ((length? beforeStream) - tailUnchangedCount)
+         afterStream: copy/part afterStream ((length? afterStream) - tailUnchangedCount)
+      ]
+      ;the streams now only have the middle part that's different (unchanged head and tail cut off)
 
       if (not tail? beforeStream) and (not tail? afterStream) [
          ;replace as much as possible. will be the rest of at least 1 stream
@@ -59,42 +72,46 @@ deltaGenerator: context [
             buildDelta [
                operation: deltaConstants/operation/replace
                operationSize: replaceLength
+               newData: copy/part afterStream replaceLength
             ]
          )
-         append deltaStream copy/part afterStream replaceLength
+         ;skip is fine since the streams won't go back anymore
          beforeStream: skip beforeStream replaceLength
          afterStream: skip afterStream replaceLength
       ]
+      if (not tail? beforeStream) and (not tail? afterStream) [throw "Bug in generateDelta: 1 stream should be tail"]
+      ;1 stream is tail, the other might have extra bytes
 
-      if (tail? beforeStream) and (tail? afterStream) [
-         ;unchanged remaining (done)
+      if not tail? beforeStream [
+         ;TODO: if tailUnchangedCount == 0 then op remaining
+         append deltaStream (
+            buildDelta [
+               operation: deltaConstants/operation/remove
+               operationSize: length? beforeStream
+            ]
+         )
+      ]
+      if not tail? afterStream [
+         append deltaStream (
+            buildDelta [
+               operation: deltaConstants/operation/add
+               operationSize: length? afterStream
+               newData: afterStream
+            ]
+         )
+      ]
+
+      if tailUnchangedCount > 0 [
          append deltaStream (
             buildDelta [
                operation: deltaConstants/operation/unchanged
                operationSize: deltaConstants/remainingBytes
             ]
          )
-         return deltaStream
       ]
-      if tail? beforeStream [
-         ;add remaining
-         append deltaStream (
-            buildDelta [
-               operation: deltaConstants/operation/add
-               operationSize: deltaConstants/remainingBytes
-            ]
-         )
-         append deltaStream afterStream
-         return deltaStream
-      ]
-      if not tail? afterStream [throw "Bug in generateDelta: afterStream should be at tail at bottom"]
-      ;remove remaining
-      append deltaStream (
-         buildDelta [
-            operation: deltaConstants/operation/remove
-            operationSize: deltaConstants/remainingBytes
-         ]
-      )
+
+      if (deltaApplier/applyDelta originalBeforeStream deltaStream) <> originalAfterStream
+         [throw "Bug in generateDelta: deltaStream doesn't correctly describe changes"]
       return deltaStream
    ]
 ]

@@ -38,9 +38,36 @@ context [
       append expected (
          buildDelta [
             operation: deltaConstants/operation/remove
-            operationSize: deltaConstants/remainingBytes
+            operationSize: 2
          ]
       )
+
+      actual: catch [deltaGenerator/generateDelta beforeStream afterStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-generateDelta-detectsUnchangedTail-whenUnchangedHead: function [] [
+      beforeStream: to binary! "12ab21"
+      afterStream: to binary! "12c21"
+      expected: copy #{}
+      append expected buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 2
+      ]
+      append expected buildDelta [
+         operation: deltaConstants/operation/replace
+         operationSize: 1
+         newData: to binary! "c"
+      ]
+      append expected buildDelta [
+         operation: deltaConstants/operation/remove
+         operationSize: 1
+      ]
+      append expected buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
 
       actual: catch [deltaGenerator/generateDelta beforeStream afterStream]
 
@@ -52,7 +79,7 @@ context [
       afterStream: to binary! "hi"
       expected: buildDelta [
          operation: deltaConstants/operation/add
-         operationSize: deltaConstants/remainingBytes
+         operationSize: 2
          newData: copy afterStream
       ]
 
@@ -64,20 +91,11 @@ context [
    test-generateDelta-returnsReplaceThenDone-givenOnlyDiff: function [] [
       beforeStream: to binary! "aa"
       afterStream: to binary! "bb"
-      expected: copy #{}
-      append expected (
-         buildDelta [
-            operation: deltaConstants/operation/replace
-            operationSize: 2
-            newData: to binary! "bb"
-         ]
-      )
-      append expected (
-         buildDelta [
-            operation: deltaConstants/operation/unchanged
-            operationSize: deltaConstants/remainingBytes
-         ]
-      )
+      expected: buildDelta [
+         operation: deltaConstants/operation/replace
+         operationSize: 2
+         newData: to binary! "bb"
+      ]
 
       actual: catch [deltaGenerator/generateDelta beforeStream afterStream]
 

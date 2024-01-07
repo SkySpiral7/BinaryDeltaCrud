@@ -2,6 +2,8 @@
 
 To word wrap use col 121: https://www.browserling.com/tools/word-wrap
 
+If streams are unknown size then you could unchanged 2 etc then unchanged 0 to indicate done since "remaining" won't work.
+
 ## compare to other binary deltas
 * Shared Dictionary Compression for HTTP deprecated because VCDIFF (RFC 3284) compression sucked compared to normal ones like GZip
    * https://datatracker.ietf.org/doc/html/rfc3284 additionally it's just very different. diff use case at the least
