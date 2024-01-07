@@ -7,9 +7,11 @@ context [
       "Initialize/Reload context before each test"
    ] [
       do %../src/main/red/buildDelta.red
+      do %../src/main/red/deltaApplier.red
       do %../src/main/red/deltaConstants.red
+      do %../src/main/red/deltaGenerator.red
       do %../src/main/red/deltaIterator.red
-      do %../src/main/red/main.red
+      do %../src/main/red/deltaManipulator.red
       ;print ["actual" actual]
    ]
    ;exists so that it doesn't fail on "Provided object does not have any test method!"

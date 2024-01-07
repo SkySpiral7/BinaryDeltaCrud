@@ -2,7 +2,7 @@ Red [
    Title: "Entrance for cli"
 ]
 
-do %main.red
+do %deltaApplier.red
 do %gui.red
 print ""  ;to separate from the junk that view prints
 
@@ -16,7 +16,7 @@ context [
          "applyDelta" [
             beforeStream: read/binary (to file! system/options/args/2)
             deltaStream: read/binary (to file! system/options/args/3)
-            afterStream: main/applyDelta beforeStream deltaStream
+            afterStream: deltaApplier/applyDelta beforeStream deltaStream
             write (to file! system/options/args/4) afterStream
          ]
       ] [
