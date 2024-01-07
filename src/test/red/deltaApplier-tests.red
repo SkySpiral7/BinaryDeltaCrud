@@ -4,7 +4,6 @@ Red [
 
 do %../../main/red/buildDelta.red
 do %../../main/red/deltaConstants.red
-;TODO: use the builder
 
 context [
    setup: function [
@@ -24,7 +23,7 @@ context [
       )
       ;same op twice
       append deltaStream deltaStream
-      expected: to binary! "ab"
+      expected: copy beforeStream
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -46,12 +45,12 @@ context [
 
    test-applyDelta-doesAdd-givenAdd: function [] [
       beforeStream: #{}
+      expected: to binary! #"a"
       deltaStream: buildDelta [
          operation: deltaConstants/operation/add
          operationSize: 1
-         newData: to binary! #"a"
+         newData: copy expected
       ]
-      expected: to binary! #"a"
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -60,9 +59,11 @@ context [
 
    test-applyDelta-doesUnchanged-givenUnchanged: function [] [
       beforeStream: #{cafe}
-      ;001 0 0000 remaining unchanged aka done
-      deltaStream: 2#{00100000}
-      expected: #{cafe}
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
+      expected: copy beforeStream
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -71,9 +72,11 @@ context [
 
    test-applyDelta-doesUnchanged-givenUnchangedEmptyBefore: function [] [
       beforeStream: #{}
-      ;001 0 0000 remaining unchanged aka done
-      deltaStream: 2#{00100000}
-      expected: #{}
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
+      expected: copy beforeStream
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -81,10 +84,13 @@ context [
    ]
 
    test-applyDelta-doesReplace-givenReplace: function [] [
-      beforeStream: #{cafe}
-      ;010 0 0000 replace remaining bytes (11111111 00000000)
-      deltaStream: 2#{010000001111111100000000}
-      expected: 2#{1111111100000000}
+      beforeStream: to binary! "aa"
+      expected: to binary! "bb"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/replace
+         operationSize: deltaConstants/remainingBytes
+         newData: copy expected
+      ]
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -92,9 +98,11 @@ context [
    ]
 
    test-applyDelta-doesRemove-givenRemove: function [] [
-      beforeStream: #{cafe}
-      ;011 0 0000 remove remaining bytes
-      deltaStream: 2#{01100000}
+      beforeStream: to binary! #"a"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: #{}
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
@@ -103,11 +111,14 @@ context [
    ]
 
    test-applyDelta-doesReplace-givenReversibleReplace: function [] [
-      beforeStream: 2#{00000000}
-      ;110 0 0000 reversible replace remaining bytes
-      ;old: 00000000, new: 11111111
-      deltaStream: 2#{110000000000000011111111}
-      expected: 2#{11111111}
+      beforeStream: to binary! "aa"
+      expected: to binary! "bb"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy beforeStream
+         newData: copy expected
+      ]
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
 
@@ -115,9 +126,12 @@ context [
    ]
 
    test-applyDelta-doesRemove-givenReversibleRemove: function [] [
-      beforeStream: 2#{00000000}
-      ;111 0 0000 reversible remove remaining bytes (00000000)
-      deltaStream: 2#{1110000000000000}
+      beforeStream: to binary! "aa"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy beforeStream
+      ]
       expected: #{}
 
       actual: catch [deltaApplier/applyDelta beforeStream deltaStream]
@@ -126,10 +140,17 @@ context [
    ]
 
    test-undoDelta-loops-givenMultipleDeltaOps: function [] [
-      afterStream: #{1122}
-      ;001 0 0001 unchanged 1 byte. twice
-      deltaStream: 2#{0010000100100001}
-      expected: #{1122}
+      afterStream: to binary! "ab"
+      deltaStream: copy #{}
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/unchanged
+            operationSize: 1
+         ]
+      )
+      ;same op twice
+      append deltaStream deltaStream
+      expected: copy afterStream
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
 
@@ -138,8 +159,11 @@ context [
 
    test-undoDelta-validatesAfterStream-givenInvalidAfterStream: function [] [
       afterStream: #{}
-      ;000 0 0001 add 1 byte (11111111)
-      deltaStream: 2#{0000000111111111}
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+         newData: to binary! "a"
+      ]
       expected: "Invalid: Not enough bytes remaining in afterStream"
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -148,9 +172,12 @@ context [
    ]
 
    test-undoDelta-undoesAdd-givenAdd: function [] [
-      afterStream: 2#{11111111}
-      ;000 0 0001 add 1 byte (11111111)
-      deltaStream: 2#{0000000111111111}
+      afterStream: to binary! "a"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+         newData: copy afterStream
+      ]
       expected: #{}
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -159,9 +186,12 @@ context [
    ]
 
    test-undoDelta-validatesAdd-givenAdd: function [] [
-      afterStream: 2#{11011011}
-      ;000 0 0001 add 1 byte (11111111)
-      deltaStream: 2#{0000000111111111}
+      afterStream: to binary! "a"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+         newData: to binary! "b"
+      ]
       expected: "Invalid: bytes removed from afterStream didn't match deltaStream"
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -170,10 +200,12 @@ context [
    ]
 
    test-undoDelta-undoesUnchanged-givenUnchanged: function [] [
-      afterStream: #{cafe}
-      ;001 0 0000 remaining unchanged aka done
-      deltaStream: 2#{00100000}
-      expected: #{cafe}
+      afterStream: to binary! "ab"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
+      expected: copy afterStream
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
 
@@ -182,9 +214,11 @@ context [
 
    test-undoDelta-undoesUnchanged-givenUnchangedEmptyAfter: function [] [
       afterStream: #{}
-      ;001 0 0000 remaining unchanged aka done
-      deltaStream: 2#{00100000}
-      expected: #{}
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
+      expected: copy afterStream
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
 
@@ -192,9 +226,12 @@ context [
    ]
 
    test-undoDelta-throws-givenReplace: function [] [
-      afterStream: 2#{1111111100000000}
-      ;010 0 0000 replace remaining bytes (11111111 00000000)
-      deltaStream: 2#{010000001111111100000000}
+      afterStream: to binary! "bb"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/replace
+         operationSize: deltaConstants/remainingBytes
+         newData: copy afterStream
+      ]
       expected: "Invalid: deltaStream isn't reversible"
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -204,8 +241,10 @@ context [
 
    test-undoDelta-throws-givenRemove: function [] [
       afterStream: #{}
-      ;011 0 0000 remove remaining bytes
-      deltaStream: 2#{01100000}
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: "Invalid: deltaStream isn't reversible"
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -214,11 +253,14 @@ context [
    ]
 
    test-undoDelta-undoesReplace-givenReversibleReplace: function [] [
-      afterStream: 2#{11111111}
-      ;110 0 0000 reversible replace remaining bytes
-      ;old: 00000000, new: 11111111
-      deltaStream: 2#{110000000000000011111111}
-      expected: 2#{00000000}
+      afterStream: to binary! "bb"
+      expected: to binary! "aa"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy expected
+         newData: copy afterStream
+      ]
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
 
@@ -226,10 +268,13 @@ context [
    ]
 
    test-undoDelta-validatesReplace-givenReversibleReplace: function [] [
-      afterStream: 2#{11011011}
-      ;110 0 0000 reversible replace remaining bytes
-      ;old: 00000000, new: 11111111
-      deltaStream: 2#{110000000000000011111111}
+      afterStream: to binary! "bb"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: to binary! "aa"
+         newData: to binary! "cc"
+      ]
       expected: "Invalid: bytes removed from afterStream didn't match deltaStream"
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
@@ -239,9 +284,12 @@ context [
 
    test-undoDelta-undoesRemove-givenReversibleRemove: function [] [
       afterStream: #{}
-      ;111 0 0000 reversible remove remaining bytes (00000000)
-      deltaStream: 2#{1110000000000000}
-      expected: 2#{00000000}
+      expected: to binary! "aa"
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy expected
+      ]
 
       actual: catch [deltaApplier/undoDelta afterStream deltaStream]
 

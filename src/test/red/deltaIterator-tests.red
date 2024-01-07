@@ -4,7 +4,6 @@ Red [
 
 do %../../main/red/buildDelta.red
 do %../../main/red/deltaConstants.red
-;TODO: use the builder for some at least
 
 context [
    setup: function [
@@ -68,6 +67,7 @@ context [
    ]
 
    test-parseNext-parsesOperationSize-whenSimple: function [] [
+      ;don't use builder so I can enforce the op size flag
       ;001 0 0001 unchanged 1 byte
       originalDeltaStream: 2#{00100001}
       deltaItr: make deltaIterator [deltaStream: copy originalDeltaStream]
@@ -79,6 +79,7 @@ context [
    ]
 
    test-parseNext-parsesOperationSize-whenOpSizeSize2: function [] [
+      ;don't use builder so I can enforce the op size flag
       ;001 1 0010 00000000 00000001 unchanged 2 bytes op size size which has an op size of 1
       originalDeltaStream: 2#{001100100000000000000001}
       deltaItr: make deltaIterator [deltaStream: copy originalDeltaStream]
@@ -90,6 +91,7 @@ context [
    ]
 
    test-parseNext-parsesOperationSize-whenOpSizeSize4: function [] [
+      ;don't use builder so I can enforce the op size flag
       ;001 1 0100 00000000 00000000 00000000 00000001 unchanged 4 bytes op size size which has an op size of 1
       originalDeltaStream: 2#{0011010000000000000000000000000000000001}
       deltaItr: make deltaIterator [deltaStream: copy originalDeltaStream]
@@ -101,8 +103,10 @@ context [
    ]
 
    test-parseNext-throws-givenAddOp0Empty: function [] [
-      ;000 0 0000 add remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{00000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/add
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: "Invalid: Add operation must add bytes"
 
       actual: catch [deltaItr/parseNext none]
@@ -111,8 +115,10 @@ context [
    ]
 
    test-parseNext-throws-givenAddOp1Empty: function [] [
-      ;000 0 0001 add 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{00000001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/add
+         operationSize: 1
+      ]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -147,8 +153,11 @@ context [
    ]
 
    test-parseNext-throws-givenUnchangeOp0ExtraDelta: function [] [
-      ;001 0 0000 remaining unchanged aka done
-      deltaItr: make deltaIterator [deltaStream: 2#{0010000000100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+         newData: to binary! "extra"
+      ]
       expected: "Invalid: Unaccounted for bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -157,24 +166,30 @@ context [
    ]
 
    test-parseNext-parses-givenUnchangeOp0: function [] [
-      ;001 0 0000 remaining unchanged aka done
-      deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 0 deltaItr/operationSize
    ]
 
    test-parseNext-parses-givenUnchangeOp1: function [] [
-      ;001 0 0001 unchanged 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 1
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/unchanged deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
    test-parseNext-throws-givenReplaceOp0Empty: function [] [
-      ;010 0 0000 replace remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{01000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: "Invalid: Replace operation must replace bytes"
 
       actual: catch [deltaItr/parseNext none]
@@ -183,8 +198,10 @@ context [
    ]
 
    test-parseNext-throws-givenReplaceOp1ShortDelta: function [] [
-      ;010 0 0001 replace 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{01000001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: 1
+      ]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -193,26 +210,37 @@ context [
    ]
 
    test-parseNext-parses-givenReplaceOp0: function [] [
-      ;010 0 0000 replace remaining (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0100000011111111}]
+      expectedNewData: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: deltaConstants/remainingBytes
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/replace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-parses-givenReplaceOp1: function [] [
-      ;010 0 0001 replace 1 byte (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
+      expectedNewData: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: 1
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/replace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-throws-givenRemoveOp0Extra: function [] [
-      ;011 0 0000 remove remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{0110000001100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+         newData: to binary! "extra"
+      ]
       expected: "Invalid: Unaccounted for bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -221,25 +249,31 @@ context [
    ]
 
    test-parseNext-parses-givenRemoveOp0: function [] [
-      ;011 0 0000 remove remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/remove deltaItr/operationType
       redunit/assert-equals 0 deltaItr/operationSize
    ]
 
    test-parseNext-parses-givenRemoveOp1: function [] [
-      ;011 0 0001 remove 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: 1
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/remove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
    ]
 
    test-parseNext-throws-givenReversibleReplaceOp0Odd: function [] [
-      ;110 0 0000 reversible replace remaining bytes
-      ;old: 00000000 but no new
-      deltaItr: make deltaIterator [deltaStream: 2#{1100000000000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: to binary! "odd"
+      ]
       expected: "Invalid: deltaStream must have an even number of bytes"
 
       actual: catch [deltaItr/parseNext none]
@@ -248,8 +282,10 @@ context [
    ]
 
    test-parseNext-throws-givenReversibleReplaceOp0Empty: function [] [
-      ;110 0 0000 reversible replace remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{11000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: "Invalid: Replace operation must replace bytes"
 
       actual: catch [deltaItr/parseNext none]
@@ -258,9 +294,12 @@ context [
    ]
 
    test-parseNext-throws-givenReversibleReplaceOp1EmptyDelta: function [] [
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000 but no new
-      deltaItr: make deltaIterator [deltaStream: 2#{1100000100000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: 1
+         oldData: to binary! #"a"
+         ;no new
+      ]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -269,30 +308,43 @@ context [
    ]
 
    test-parseNext-parses-givenReversibleReplaceOp0: function [] [
-      ;110 0 0000 reversible replace remaining bytes
-      ;old: 00000000 new: 11111111
-      deltaItr: make deltaIterator [deltaStream: 2#{110000000000000011111111}]
+      expectedOldData: to binary! "aa"
+      expectedNewData: to binary! "bb"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy expectedOldData
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/reversibleReplace deltaItr/operationType
-      redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{00000000} deltaItr/oldData
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals 2 deltaItr/operationSize
+      redunit/assert-equals expectedOldData deltaItr/oldData
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-parses-givenReversibleReplaceOp1: function [] [
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000 new: 11111111
-      deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
+      expectedOldData: to binary! #"a"
+      expectedNewData: to binary! #"b"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: 1
+         oldData: copy expectedOldData
+         newData: copy expectedNewData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/reversibleReplace deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{00000000} deltaItr/oldData
-      redunit/assert-equals 2#{11111111} deltaItr/newData
+      redunit/assert-equals expectedOldData deltaItr/oldData
+      redunit/assert-equals expectedNewData deltaItr/newData
    ]
 
    test-parseNext-throws-givenReversibleRemoveOp0Empty: function [] [
-      ;111 0 0000 reversible remove remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{11100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: deltaConstants/remainingBytes
+         oldData: #{}
+      ]
       expected: "Invalid: Remove operation must remove bytes"
 
       actual: catch [deltaItr/parseNext none]
@@ -301,8 +353,11 @@ context [
    ]
 
    test-parseNext-throws-givenReversibleRemoveOp1EmptyDelta: function [] [
-      ;111 0 0001 reversible remove 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{11100001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: 1
+         oldData: #{}
+      ]
       expected: "Invalid: Not enough bytes remaining in deltaStream"
 
       actual: catch [deltaItr/parseNext none]
@@ -311,23 +366,29 @@ context [
    ]
 
    test-parseNext-parses-givenReversibleRemoveOp0: function [] [
-      ;111 0 0000 reversible remove remaining bytes
-      ;old: 00000000
-      deltaItr: make deltaIterator [deltaStream: 2#{1110000000000000}]
+      expectedOldData: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: deltaConstants/remainingBytes
+         oldData: copy expectedOldData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/reversibleRemove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{00000000} deltaItr/oldData
+      redunit/assert-equals expectedOldData deltaItr/oldData
    ]
 
    test-parseNext-parses-givenReversibleRemoveOp1: function [] [
-      ;111 0 0001 reversible remove 1 byte
-      ;old: 00000000
-      deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
+      expectedOldData: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: 1
+         oldData: copy expectedOldData
+      ]
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals deltaConstants/operation/reversibleRemove deltaItr/operationType
       redunit/assert-equals 1 deltaItr/operationSize
-      redunit/assert-equals 2#{00000000} deltaItr/oldData
+      redunit/assert-equals expectedOldData deltaItr/oldData
    ]
 
    test-parseNext-throws-whenOp4: function [] [
@@ -355,9 +416,12 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-givenAdd: function [] [
-      ;000 0 0000 add remaining bytes (11111111)
       beforeStream: #{}
-      deltaItr: make deltaIterator [deltaStream: 2#{0000000011111111}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/add
+         operationSize: deltaConstants/remainingBytes
+         newData: to binary! #"a"
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -367,8 +431,10 @@ context [
 
    test-withBeforeStream-doesNothing-givenUnchangedOp0Empty: function [] [
       beforeStream: #{}
-      ;001 0 0000 remaining unchanged aka done
-      deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -378,9 +444,11 @@ context [
    ]
 
    test-withBeforeStream-setsSize-givenUnchangedOp0Before: function [] [
-      beforeStream: #{1122}
-      ;001 0 0000 remaining unchanged aka done
-      deltaItr: make deltaIterator [deltaStream: 2#{00100000}]
+      beforeStream: to binary! "aa"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -391,8 +459,10 @@ context [
 
    test-withBeforeStream-throws-givenUnchangeOp1Empty: function [] [
       beforeStream: #{}
-      ;001 0 0001 unchanged 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 1
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -402,9 +472,12 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-givenValidReplace: function [] [
-      beforeStream: #{00}
-      ;010 0 0001 replace 1 byte (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: 1
+         newData: to binary! #"b"
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -414,8 +487,11 @@ context [
 
    test-withBeforeStream-throws-givenReplaceOp1ShortBefore: function [] [
       beforeStream: #{}
-      ;010 0 0001 replace 1 byte (11111111)
-      deltaItr: make deltaIterator [deltaStream: 2#{0100000111111111}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/replace
+         operationSize: 1
+         newData: to binary! #"b"
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -425,9 +501,11 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-givenRemoveOp1: function [] [
-      beforeStream: #{11}
-      ;011 0 0001 remove 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: 1
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -436,9 +514,11 @@ context [
    ]
 
    test-withBeforeStream-setsSize-givenRemoveOp0: function [] [
-      beforeStream: #{00}
-      ;011 0 0000 remove remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -449,8 +529,10 @@ context [
 
    test-withBeforeStream-throws-givenRemoveOp0Empty: function [] [
       beforeStream: #{}
-      ;011 0 0000 remove remaining bytes
-      deltaItr: make deltaIterator [deltaStream: 2#{01100000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: deltaConstants/remainingBytes
+      ]
       expected: "Invalid: Remove operation must remove bytes"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -461,8 +543,10 @@ context [
 
    test-withBeforeStream-throws-givenRemoveOp1Empty: function [] [
       beforeStream: #{}
-      ;011 0 0001 remove 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{01100001}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/remove
+         operationSize: 1
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -472,10 +556,13 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-givenValidReversibleReplace: function [] [
-      beforeStream: 2#{00000000}
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000, new: 11111111
-      deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: 1
+         oldData: copy beforeStream
+         newData: to binary! #"b"
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -485,9 +572,12 @@ context [
 
    test-withBeforeStream-throws-givenReversibleReplaceEmptyBefore: function [] [
       beforeStream: #{}
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000, new: 11111111
-      deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: to binary! #"a"
+         newData: to binary! #"b"
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -497,10 +587,13 @@ context [
    ]
 
    test-withBeforeStream-throws-givenReversibleReplaceNoMatch: function [] [
-      beforeStream: 2#{11000001}
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000, new: 11111111
-      deltaItr: make deltaIterator [deltaStream: 2#{110000010000000011111111}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: deltaConstants/remainingBytes
+         oldData: to binary! #"c"
+         newData: to binary! #"b"
+      ]
       expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -510,10 +603,12 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-givenValidReversibleRemove: function [] [
-      beforeStream: 2#{00000000}
-      ;111 0 0001 reversible remove 1 byte
-      ;old: 00000000
-      deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: 1
+         oldData: copy beforeStream
+      ]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -523,9 +618,11 @@ context [
 
    test-withBeforeStream-throws-givenReversibleRemoveEmptyBefore: function [] [
       beforeStream: #{}
-      ;111 0 0001 reversible remove 1 byte
-      ;old: 00000000
-      deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: 1
+         oldData: to binary! #"a"
+      ]
       expected: "Invalid: Not enough bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -535,10 +632,12 @@ context [
    ]
 
    test-withBeforeStream-throws-givenReversibleRemoveNoMatch: function [] [
-      beforeStream: 2#{11000001}
-      ;111 0 0001 reversible remove 1 byte
-      ;old: 00000000
-      deltaItr: make deltaIterator [deltaStream: 2#{1110000100000000}]
+      beforeStream: to binary! #"a"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/reversibleRemove
+         operationSize: 1
+         oldData: to binary! #"c"
+      ]
       expected: "Invalid: bytes removed from beforeStream didn't match deltaStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -548,9 +647,17 @@ context [
    ]
 
    test-withBeforeStream-doesNothing-whenNonTerminalExtraBefore: function [] [
-      beforeStream: #{1122}
-      ;001 0 0001 unchanged 1 byte. twice but only first is parsed
-      deltaItr: make deltaIterator [deltaStream: 2#{0010000100100001}]
+      beforeStream: to binary! "ab"
+      deltaStreamParam: copy #{}
+      append deltaStreamParam (
+         buildDelta [
+            operation: deltaConstants/operation/unchanged
+            operationSize: 1
+         ]
+      )
+      ;same op twice but only first is parsed
+      append deltaStreamParam deltaStreamParam
+      deltaItr: make deltaIterator[deltaStream: deltaStreamParam]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       actual: catch [deltaItr/withBeforeStream beforeStream]
@@ -559,9 +666,11 @@ context [
    ]
 
    test-withBeforeStream-throws-whenBeforeHasExtraBytes: function [] [
-      beforeStream: #{1122}
-      ;001 0 0001 unchanged 1 byte
-      deltaItr: make deltaIterator [deltaStream: 2#{00100001}]
+      beforeStream: to binary! "ab"
+      deltaItr: makeSingle [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 1
+      ]
       expected: "Invalid: Unaccounted for bytes remaining in beforeStream"
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
@@ -571,19 +680,24 @@ context [
    ]
 
    test-operationAndData-returns-whenMinimal: function [] [
-      ;001 0 0000 remaining unchanged aka done
-      originalDeltaStream: 2#{00100000}
-      deltaItr: make deltaIterator [deltaStream: copy originalDeltaStream]
+      originalDeltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: 1
+      ]
+      deltaItr: make deltaIterator[deltaStream: copy originalDeltaStream]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals originalDeltaStream catch [deltaItr/operationAndData]
    ]
 
    test-operationAndData-returns-whenMax: function [] [
-      ;110 0 0001 reversible replace 1 byte
-      ;old: 00000000 new: 11111111
-      originalDeltaStream: 2#{110000010000000011111111}
-      deltaItr: make deltaIterator [deltaStream: copy originalDeltaStream]
+      originalDeltaStream: buildDelta [
+         operation: deltaConstants/operation/reversibleReplace
+         operationSize: 1
+         oldData: to binary! #"a"
+         newData: to binary! #"b"
+      ]
+      deltaItr: make deltaIterator[deltaStream: copy originalDeltaStream]
 
       redunit/assert-equals none catch [deltaItr/parseNext none]
       redunit/assert-equals originalDeltaStream catch [deltaItr/operationAndData]

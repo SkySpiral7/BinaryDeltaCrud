@@ -7,7 +7,7 @@ do %deltaConstants.red
 buildDelta: function [
    {Creates a new binary with a single operation based on args.
    @returns deltaStream
-   WARN: unvalidated so that tests can create binary to test other validation}
+   WARN: unvalidated so that tests can create binary to test validation}
    blockArgs[block!]
    return: [binary!]
 ] [
