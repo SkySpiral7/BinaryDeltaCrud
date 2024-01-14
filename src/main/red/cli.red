@@ -43,12 +43,12 @@ context [
             deltaStream: deltaManipulator/makeDeltaReversible beforeStream deltaStream
             write (to file! system/options/args/3) deltaStream
          ]
-         ; "massageDelta" [
-         ;    ;deltaStreamFile => deltaStreamFile
-         ;    deltaStream: read/binary (to file! system/options/args/2)
-         ;    deltaStream: deltaManipulator/massageDelta deltaStream
-         ;    write (to file! system/options/args/2) deltaStream
-         ; ]
+         "massageDelta" [
+            ;deltaStreamFile => deltaStreamFile
+            deltaStream: read/binary (to file! system/options/args/2)
+            deltaStream: deltaManipulator/massageDelta deltaStream
+            write (to file! system/options/args/2) deltaStream
+         ]
          "undoDelta" [
             ;afterStreamFile deltaStreamFile => beforeStreamFile
             afterStream: read/binary (to file! system/options/args/2)
@@ -63,7 +63,7 @@ context [
             "generateDelta beforeStreamFile afterStreamFile => deltaStreamFile" newline
             "makeDeltaNonReversible deltaStreamFile => deltaStreamFile" newline
             "makeDeltaReversible beforeStreamFile deltaStreamFile => deltaStreamFile" newline
-            ;"massageDelta deltaStreamFile => deltaStreamFile" newline
+            "massageDelta deltaStreamFile => deltaStreamFile" newline
             "undoDelta afterStreamFile deltaStreamFile => beforeStreamFile" newline
             "help"
          ]

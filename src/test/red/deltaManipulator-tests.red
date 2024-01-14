@@ -248,4 +248,35 @@ context [
 
       redunit/assert-equals expected actual
    ]
+
+   test-massageDelta-doesNothing-givenAcceptableDelta: function [] [
+      deltaStream: buildDelta [
+         operation: deltaConstants/operation/unchanged
+         operationSize: deltaConstants/remainingBytes
+      ]
+      expected: copy deltaStream
+
+      actual: catch [deltaManipulator/massageDelta deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-massageDelta-shrinksOp-givenExtraLongDelta: function [] [
+      ;don't use builder so I can show the before/after bit changes
+      ;110 1 0010 reversibleReplace op size size 2
+      ;00000000 00000001 op size 1
+      ;oldData: 01001010
+      ;newData: 00000000
+      ;001 0 0000 unchanged remaining
+      deltaStream: 2#{110100100000000000000001010010100000000000100000}
+      ;110 0 0001 reversibleReplace op size 1
+      ;oldData: 01001010
+      ;newData: 00000000
+      ;001 0 0000 unchanged remaining
+      expected: 2#{11000001010010100000000000100000}
+
+      actual: catch [deltaManipulator/massageDelta deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
 ]

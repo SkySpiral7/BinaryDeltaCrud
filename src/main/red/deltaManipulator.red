@@ -95,14 +95,32 @@ deltaManipulator: context [
    ]
    massageDelta: function [
       {Modify a deltaStream to remove redundant info.
-      This shrinks redundantly large op sizes and removes trailing "done".
+      This shrinks redundantly large op sizes.
       This doesn't split large ops since red's binary! has max size anyway.
       @param deltaStreamParam isn't mutated instead see return value
       @returns the new deltaStream}
       deltaStreamParam[binary!]
       return: [binary!]
    ] [
-      ;TODO: make massage
-      throw "Not yet implemented: massageDelta"
+      comment {
+         This shrinks redundantly large op sizes, combines duplicate ops, and removes trailing "done".
+
+         TODO: more massageDelta
+         there can only be a single trailing done (if valid) so only need to keep previous new/old op indexes
+         combining duplicates also only needs a single back track
+      }
+      smallerDeltaStream: copy #{}
+      deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
+      while [deltaItr/hasNext?] [
+         deltaItr/parseNext none
+         append smallerDeltaStream buildDelta [
+            operation: deltaItr/operationType
+            operationSize: deltaItr/operationSize
+            oldData: deltaItr/oldData
+            newData: deltaItr/newData
+         ]
+         deltaItr/operationBinary
+      ]
+      return smallerDeltaStream
    ]
 ]

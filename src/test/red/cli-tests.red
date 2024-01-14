@@ -100,6 +100,24 @@ context [
       redunit/assert-equals expected actual
    ]
 
+   test-massageDelta-writesChange-givenValidStreams: function [] [
+      ;don't use builder so I can show the before/after bit changes
+      deltaStreamPath: clean-path append copy tempDir %deltaStream.bin
+      ;011 1 0010 remove op size size 2
+      ;00000000 00000001 op size 1
+      ;001 0 0000 unchanged remaining
+      write deltaStreamPath 2#{01110010000000000000000100100000}
+      ;011 0 0001 remove op size 1
+      ;001 0 0000 unchanged remaining
+      expected: 2#{0110000100100000}
+
+      system/options/args: reduce ["massageDelta" deltaStreamPath]
+      do cliPath
+      actual: read/binary deltaStreamPath
+
+      redunit/assert-equals expected actual
+   ]
+
    test-undoDelta-writesChange-givenValidStreams: function [] [
       afterStreamPath: clean-path append copy tempDir %afterStream.bin
       write afterStreamPath "b"

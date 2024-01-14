@@ -3,6 +3,7 @@ Red [
 ]
 
 do %../lib/RedUnit/src/redunit.red
+;ODO: revert
 redunit/run %singleTest.red
 
 ;redunit/run %../src/test/red/buildDelta-tests.red
