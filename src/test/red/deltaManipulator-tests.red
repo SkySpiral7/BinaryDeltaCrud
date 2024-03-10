@@ -249,7 +249,16 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-massageDelta-doesNothing-givenAcceptableDelta: function [] [
+   test-massageDelta-doesNothing-givenEmptyDelta: function [] [
+      deltaStream: #{}
+      expected: copy deltaStream
+
+      actual: catch [deltaManipulator/massageDelta deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-massageDelta-doesNothing-givenAcceptableDeltaSingleOp: function [] [
       deltaStream: buildDelta [
          operation: deltaConstants/operation/unchanged
          operationSize: deltaConstants/remainingBytes
@@ -261,7 +270,29 @@ context [
       redunit/assert-equals expected actual
    ]
 
-   test-massageDelta-shrinksOp-givenExtraLongDelta: function [] [
+   test-massageDelta-doesNothing-givenAcceptableDeltaTwoOp: function [] [
+      deltaStream: copy #{}
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/add
+            operationSize: 1
+            newData: to binary! "a"
+         ]
+      )
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/remove
+            operationSize: 1
+         ]
+      )
+      expected: copy deltaStream
+
+      actual: catch [deltaManipulator/massageDelta deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-massageDelta-shrinksOp-givenExtraLongOpSize: function [] [
       ;don't use builder so I can show the before/after bit changes
       ;110 1 0010 reversibleReplace op size size 2
       ;00000000 00000001 op size 1
@@ -274,6 +305,33 @@ context [
       ;newData: 00000000
       ;001 0 0000 unchanged remaining
       expected: 2#{11000001010010100000000000100000}
+
+      actual: catch [deltaManipulator/massageDelta deltaStream]
+
+      redunit/assert-equals expected actual
+   ]
+
+   test-massageDelta-combinesDuplicate-givenDoubleOp: function [] [
+      deltaStream: copy #{}
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/add
+            operationSize: 1
+            newData: to binary! "a"
+         ]
+      )
+      append deltaStream (
+         buildDelta [
+            operation: deltaConstants/operation/add
+            operationSize: 1
+            newData: to binary! "b"
+         ]
+      )
+      expected: buildDelta [
+         operation: deltaConstants/operation/add
+         operationSize: 2
+         newData: to binary! "ab"
+      ]
 
       actual: catch [deltaManipulator/massageDelta deltaStream]
 

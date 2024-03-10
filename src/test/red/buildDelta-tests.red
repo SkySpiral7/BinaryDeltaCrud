@@ -94,4 +94,19 @@ context [
 
       redunit/assert-equals expected actual
    ]
+
+   ;data is unset is covered by the other tests
+   test-buildDelta-handlesNoneData-givenDataIsNone: function [] [
+      ;unchanged
+      operationParam: to integer! 2#{00100000}
+      operationSizeParam: 1
+      ;001 0 0001 unchanged op size 1
+      expected: 2#{00100001}
+
+      actual: catch [buildDelta[
+         operation: operationParam operationSize: operationSizeParam oldData: none newData: none
+      ]]
+
+      redunit/assert-equals expected actual
+   ]
 ]

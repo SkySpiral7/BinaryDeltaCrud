@@ -95,10 +95,11 @@ deltaManipulator: context [
    ]
    massageDelta: function [
       {Modify a deltaStream to remove redundant info.
-      This shrinks redundantly large op sizes.
+      This shrinks redundantly large op sizes and combines duplicate ops.
       This doesn't split large ops since red's binary! has max size anyway.
       @param deltaStreamParam isn't mutated instead see return value
       @returns the new deltaStream}
+      ;TODO: check help parsing. put string on the args
       deltaStreamParam[binary!]
       return: [binary!]
    ] [
@@ -106,20 +107,55 @@ deltaManipulator: context [
          This shrinks redundantly large op sizes, combines duplicate ops, and removes trailing "done".
 
          TODO: more massageDelta
-         there can only be a single trailing done (if valid) so only need to keep previous new/old op indexes
-         combining duplicates also only needs a single back track
+         removing trailing "done" requires stepping through beforeStream
       }
       smallerDeltaStream: copy #{}
+      ;empty delta is valid and already clean TODO: check this edge case everywhere
+      if empty? deltaStreamParam [return smallerDeltaStream]
       deltaItr: make deltaIterator [deltaStream: deltaStreamParam]
+
+      deltaItr/parseNext none
+      ;seed previous with the first op
+      previous: context [
+         operation: deltaItr/operationType
+         operationSize: deltaItr/operationSize
+         oldData: none
+         newData: none
+      ]
+      if deltaItr/oldData <> none [previous/oldData: copy deltaItr/oldData]
+      if deltaItr/newData <> none [previous/newData: copy deltaItr/newData]
+
       while [deltaItr/hasNext?] [
          deltaItr/parseNext none
-         append smallerDeltaStream buildDelta [
-            operation: deltaItr/operationType
-            operationSize: deltaItr/operationSize
-            oldData: deltaItr/oldData
-            newData: deltaItr/newData
+         ;duplicate op
+         either previous/operation == deltaItr/operationType [
+            ;TODO: add size validation like the itr has
+            previous/operationSize: previous/operationSize + deltaItr/operationSize
+            if previous/oldData <> none [previous/oldData: append previous/oldData deltaItr/oldData]
+            if previous/newData <> none [previous/newData: append previous/newData deltaItr/newData]
+         ] [
+            ;previous no longer needs a bigger size so just record it
+            append smallerDeltaStream buildDelta [
+               operation: previous/operation
+               operationSize: previous/operationSize
+               oldData: previous/oldData
+               newData: previous/newData
+            ]
+            previous: context [
+               operation: deltaItr/operationType
+               operationSize: deltaItr/operationSize
+               oldData: none
+               newData: none
+            ]
+            if deltaItr/oldData <> none [previous/oldData: copy deltaItr/oldData]
+            if deltaItr/newData <> none [previous/newData: copy deltaItr/newData]
          ]
-         deltaItr/operationBinary
+      ]
+      append smallerDeltaStream buildDelta [
+         operation: previous/operation
+         operationSize: previous/operationSize
+         oldData: previous/oldData
+         newData: previous/newData
       ]
       return smallerDeltaStream
    ]
